@@ -920,7 +920,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 					util::errinfo_comment(util::stackTooDeepString)
 				);
 			_assembly.appendInstruction(Instruction::SWAPE);
-			_assembly.appendData(bytes{(uint8_t)stackDiff});
+			_assembly.appendVerbatim(bytes{(uint8_t)stackDiff},0,0);
 			_assembly.appendInstruction(Instruction::POP);
 		}
 	};
