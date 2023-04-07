@@ -430,7 +430,8 @@ void CompilerContext::appendInlineAssembly(
 		}
 		else
 		{
-			_assembly.appendInstruction(swapInstruction(static_cast<unsigned>(stackDiff)));
+			_assembly.appendInstruction(Instruction::SWAPE);
+			_assembly.appendVerbatim(bytes{(uint8_t)(stackDiff)},0,0);
 			_assembly.appendInstruction(Instruction::POP);
 		}
 	};

@@ -747,6 +747,7 @@ void StackLayoutGenerator::fillInJunk(CFG::BasicBlock const& _block, CFG::Functi
 			if (_swapDepth > 16)
 				opGas += 1000;
 			else
+				// DSF TODO
 				opGas += evmasm::GasMeter::runGas(evmasm::swapInstruction(_swapDepth), langutil::EVMVersion());
 		};
 		auto dupOrPush = [&](StackSlot const& _slot)

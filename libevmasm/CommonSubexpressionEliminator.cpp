@@ -487,7 +487,8 @@ void CSECodeGenerator::appendOrRemoveSwap(int _fromPosition, SourceLocation cons
 	int instructionNum = m_stackHeight - _fromPosition;
 	assertThrow(instructionNum <= 16, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
-	appendItem(AssemblyItem(swapInstruction(static_cast<unsigned>(instructionNum)), _location));
+	appendItem(AssemblyItem(Instruction::SWAPE, _location));
+	appendItem(AssemblyItem(bytes((uint8_t)(instructionNum)), 0, 0));
 
 	if (m_stack[m_stackHeight] != m_stack[_fromPosition])
 	{

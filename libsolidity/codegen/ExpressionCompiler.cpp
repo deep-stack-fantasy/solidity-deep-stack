@@ -220,9 +220,9 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 		m_context << Instruction::SWAP2 << Instruction::POP << Instruction::SWAP1;
 	else if (paramTypes.size() >= 2)
 	{
-		m_context << swapInstruction(static_cast<unsigned>(paramTypes.size()));
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(static_cast<unsigned>(paramTypes.size()))};
 		m_context << Instruction::POP;
-		m_context << swapInstruction(static_cast<unsigned>(paramTypes.size()));
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(static_cast<unsigned>(paramTypes.size()))};
 		utils().popStackSlots(paramTypes.size() - 1);
 	}
 	unsigned retSizeOnStack = 0;
@@ -355,7 +355,7 @@ bool ExpressionCompiler::visit(Assignment const& _assignment)
 				);
 			// value [lvalue_ref] updated_value
 			for (unsigned i = 0; i < itemSize; ++i)
-				m_context << swapInstruction(itemSize + lvalueSize) << Instruction::POP;
+				m_context << Instruction::SWAPE<<bytes{(uint8_t)(itemSize + lvalueSize)} << Instruction::POP;
 		}
 		m_currentLValue->storeValue(*_assignment.annotation().type, _assignment.location());
 	}
@@ -479,7 +479,7 @@ bool ExpressionCompiler::visit(UnaryOperation const& _unaryOperation)
 			m_context << Instruction::DUP1;
 			if (m_currentLValue->sizeOnStack() > 0)
 				for (unsigned i = 1 + m_currentLValue->sizeOnStack(); i > 0; --i)
-					m_context << swapInstruction(i);
+					m_context << Instruction::SWAPE<<bytes{(uint8_t)(i)};
 		}
 		if (_unaryOperation.getOperator() == Token::Inc)
 		{
@@ -504,7 +504,7 @@ bool ExpressionCompiler::visit(UnaryOperation const& _unaryOperation)
 		// Stack for prefix: [ref...] (*ref)+-1
 		// Stack for postfix: *ref [ref...] (*ref)+-1
 		for (unsigned i = m_currentLValue->sizeOnStack(); i > 0; --i)
-			m_context << swapInstruction(i);
+			m_context << Instruction::SWAPE<<bytes{(uint8_t)(i)};
 		m_currentLValue->storeValue(
 			*_unaryOperation.annotation().type, _unaryOperation.location(),
 			!_unaryOperation.isPrefixOperation());
@@ -782,9 +782,9 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			// now: [salt], [value], address
 
 			if (function.valueSet())
-				m_context << swapInstruction(1) << Instruction::POP;
+				m_context << Instruction::SWAPE<<bytes{(uint8_t)(1) }<< Instruction::POP;
 			if (function.saltSet())
-				m_context << swapInstruction(1) << Instruction::POP;
+				m_context << Instruction::SWAPE<<bytes{(uint8_t)(1) }<< Instruction::POP;
 
 			// Check if zero (reverted)
 			m_context << Instruction::DUP1 << Instruction::ISZERO;
@@ -810,7 +810,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			// Its values of gasSet and valueSet is equal to the original function's though.
 			unsigned stackDepth = (function.gasSet() ? 1u : 0u) + (function.valueSet() ? 1u : 0u);
 			if (stackDepth > 0)
-				m_context << swapInstruction(stackDepth);
+				m_context << Instruction::SWAPE<<bytes{(uint8_t)(stackDepth)};
 			if (function.gasSet())
 				m_context << Instruction::POP;
 			break;
@@ -1067,7 +1067,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			};
 			m_context << contractAddresses.at(function.kind());
 			for (unsigned i = function.sizeOnStack(); i > 0; --i)
-				m_context << swapInstruction(i);
+				m_context << Instruction::SWAPE<<bytes{(uint8_t)(i)};
 			solAssert(!_functionCall.annotation().tryCall, "");
 			appendExternalFunctionCall(function, arguments, false);
 			break;
@@ -2831,7 +2831,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 		m_context.appendConditionalRevert(true);
 	}
 	else
-		m_context << swapInstruction(remainsSize);
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(remainsSize)};
 	utils().popStackSlots(remainsSize);
 
 	// Only success flag is remaining on stack.
