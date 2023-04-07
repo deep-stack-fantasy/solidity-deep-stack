@@ -52,8 +52,7 @@ struct Exception: virtual std::exception, virtual boost::exception
 		::solidity::util::errinfo_comment((_description)) << \
 		::boost::throw_function(ETH_FUNC) << \
 		::boost::throw_file(__FILE__) << \
-		::boost::throw_line(__LINE__) <<             \
-	    ::solidity::util::errinfo_comment(::boost::stacktrace::stacktrace()) \
+		::boost::throw_line(__LINE__) \
 	)
 
 /// Defines an exception type that's meant to signal a specific condition and be caught rather than
