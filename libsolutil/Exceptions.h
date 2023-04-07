@@ -22,6 +22,7 @@
 #include <boost/exception/info.hpp>
 #include <boost/exception/info_tuple.hpp>
 #include <boost/exception/diagnostic_information.hpp>
+#include <boost/stacktrace.hpp>
 
 #include <exception>
 #include <string>
