@@ -70,14 +70,18 @@ public:
 		m_type(Operation),
 		m_instruction(_i),
 		m_location(std::move(_location))
-	{}
+	{
+		assertThrow(!(_i==Instruction::DUPE || _i==Instruction::SWAPE), util::Exception, "DSF Exception: unexpected instruction");
+	}
 
 	AssemblyItem(Instruction _i,uint8_t opt, langutil::SourceLocation _location = langutil::SourceLocation()):
 		m_type(Operation),
 		m_instruction(_i),
 		m_instruction_opt(opt),
 		m_location(std::move(_location))
-	{}
+	{
+		assertThrow(_i==Instruction::DUPE || _i==Instruction::SWAPE, util::Exception, "DSF Exception: unexpected instruction");
+	}
 
 	AssemblyItem(AssemblyItemType _type, u256 _data = 0, langutil::SourceLocation _location = langutil::SourceLocation()):
 		m_type(_type),
