@@ -91,6 +91,8 @@ GasEstimator::GasConsumption GasEstimator::functionalEstimation(
 	auto state = make_shared<KnownState>();
 
 	unsigned parametersSize = CompilerUtils::sizeOnStack(_function.parameters());
+
+	// TODO DSF
 	if (parametersSize > 16)
 		return GasConsumption::infinite();
 
@@ -99,6 +101,7 @@ GasEstimator::GasConsumption GasEstimator::functionalEstimation(
 	AssemblyItem invalidTag(PushTag, u256(-0x10));
 	state->feedItem(invalidTag, true);
 	if (parametersSize > 0)
+		// TODO DSF
 		state->feedItem(swapInstruction(parametersSize));
 
 	return PathGasMeter::estimateMax(_items, m_evmVersion, _offset, state);

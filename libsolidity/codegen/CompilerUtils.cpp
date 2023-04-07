@@ -589,7 +589,7 @@ void CompilerUtils::encodeToMemory(
 				storeInMemoryDynamic(*TypeProvider::uint256(), true);
 				// stack: ... <end_of_mem> <value...> <end_of_mem''>
 				// copy the new memory pointer
-				m_context << swapInstruction(arrayType->sizeOnStack() + 1) << Instruction::POP;
+				m_context << Instruction::SWAPE<<bytes{(uint8_t)(arrayType->sizeOnStack() + 1)} << Instruction::POP;
 				// stack: ... <end_of_mem''> <value...>
 				// copy data part
 				ArrayUtils(m_context).copyArrayToMemory(*arrayType, _padToWordBoundaries);
@@ -602,7 +602,7 @@ void CompilerUtils::encodeToMemory(
 	}
 
 	// remove unneeded stack elements (and retain memory pointer)
-	m_context << swapInstruction(argSize + dynPointers + 1);
+	m_context << Instruction::SWAPE<<bytes{(uint8_t)(argSize + dynPointers + 1)};
 	popStackSlots(argSize + dynPointers + 1);
 }
 
@@ -1270,7 +1270,7 @@ void CompilerUtils::convertType(
 					// Move it back into its place.
 					for (unsigned j = 0; j < min(sourceSize, targetSize); ++j)
 						m_context <<
-							swapInstruction(depth + targetSize - sourceSize) <<
+							Instruction::SWAPE<<bytes{(uint8_t)(depth + targetSize - sourceSize)} <<
 							Instruction::POP;
 					// Value shrank
 					for (unsigned j = targetSize; j < sourceSize; ++j)
@@ -1422,7 +1422,7 @@ void CompilerUtils::moveToStackVariable(VariableDeclaration const& _variable)
 			util::errinfo_comment(util::stackTooDeepString)
 		);
 	for (unsigned i = 0; i < size; ++i)
-		m_context << swapInstruction(stackPosition - size + 1) << Instruction::POP;
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(stackPosition - size + 1)} << Instruction::POP;
 }
 
 void CompilerUtils::copyToStackTop(unsigned _stackDepth, unsigned _itemSize)
@@ -1459,7 +1459,7 @@ void CompilerUtils::rotateStackUp(unsigned _items)
 		util::stackTooDeepString
 	);
 	for (unsigned i = 1; i < _items; ++i)
-		m_context << swapInstruction(_items - i);
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(_items - i)};
 }
 
 void CompilerUtils::rotateStackDown(unsigned _items)
@@ -1470,7 +1470,7 @@ void CompilerUtils::rotateStackDown(unsigned _items)
 		util::stackTooDeepString
 	);
 	for (unsigned i = 1; i < _items; ++i)
-		m_context << swapInstruction(i);
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(i)};
 }
 
 void CompilerUtils::popStackElement(Type const& _type)

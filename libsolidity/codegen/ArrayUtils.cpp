@@ -65,7 +65,7 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 	// stack: source_ref [source_length] target_ref
 	// store target_ref
 	for (unsigned i = _sourceType.sizeOnStack(); i > 0; --i)
-		m_context << swapInstruction(i);
+		m_context << Instruction::SWAPE << bytes{(uint8_t)i};
 	// stack: target_ref source_ref [source_length]
 
 	if (_targetType.isByteArrayOrString())
@@ -246,7 +246,7 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 				utils.incrementByteOffset(sourceBaseType->storageBytes(), 1, haveByteOffsetTarget ? 5 : 4);
 			else
 			{
-				_context << swapInstruction(2 + byteOffsetSize);
+				_context << Instruction::SWAPE << bytes{(uint8_t)(2 + byteOffsetSize)};
 				if (sourceIsStorage)
 					_context << sourceBaseType->storageSize();
 				else if (_sourceType.location() == DataLocation::Memory)
@@ -255,17 +255,17 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 					_context << sourceBaseType->calldataHeadSize();
 				_context
 					<< Instruction::ADD
-					<< swapInstruction(2 + byteOffsetSize);
+					<< Instruction::SWAPE << bytes{(uint8_t)(2 + byteOffsetSize)};
 			}
 			// increment target
 			if (haveByteOffsetTarget)
 				utils.incrementByteOffset(targetBaseType->storageBytes(), byteOffsetSize, byteOffsetSize + 2);
 			else
 				_context
-					<< swapInstruction(1 + byteOffsetSize)
+					<< Instruction::SWAPE<<bytes{(uint8_t)(1 + byteOffsetSize)}
 					<< targetBaseType->storageSize()
 					<< Instruction::ADD
-					<< swapInstruction(1 + byteOffsetSize);
+					<< Instruction::SWAPE<<bytes{(uint8_t)(1 + byteOffsetSize)};
 			_context.appendJumpTo(copyLoopStart);
 			_context << copyLoopEnd;
 			if (haveByteOffsetTarget)
@@ -1178,10 +1178,10 @@ void ArrayUtils::incrementByteOffset(unsigned _byteSize, unsigned _byteOffsetPos
 	//     byteOffset = 0;
 	// }
 	if (_byteOffsetPosition > 1)
-		m_context << swapInstruction(_byteOffsetPosition - 1);
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(_byteOffsetPosition - 1)};
 	m_context << u256(_byteSize) << Instruction::ADD;
 	if (_byteOffsetPosition > 1)
-		m_context << swapInstruction(_byteOffsetPosition - 1);
+		m_context << Instruction::SWAPE<<bytes{(uint8_t)(_byteOffsetPosition - 1)};
 	// compute, X := (byteOffset + byteSize - 1) / 32, should be 1 iff byteOffset + bytesize > 32
 	m_context
 		<< u256(32) << dupInstruction(1 + _byteOffsetPosition) << u256(_byteSize - 1)
@@ -1189,8 +1189,8 @@ void ArrayUtils::incrementByteOffset(unsigned _byteSize, unsigned _byteOffsetPos
 	// increment storage offset if X == 1 (just add X to it)
 	// stack: X
 	m_context
-		<< swapInstruction(_storageOffsetPosition) << dupInstruction(_storageOffsetPosition + 1)
-		<< Instruction::ADD << swapInstruction(_storageOffsetPosition);
+		<< Instruction::SWAPE<<bytes{(uint8_t)(_storageOffsetPosition)} << dupInstruction(_storageOffsetPosition + 1)
+		<< Instruction::ADD << Instruction::SWAPE<<bytes{(uint8_t)(_storageOffsetPosition)};
 	// stack: X
 	// set source_byte_offset to zero if X == 1 (using source_byte_offset *= 1 - X)
 	m_context << u256(1) << Instruction::SUB;
@@ -1200,5 +1200,5 @@ void ArrayUtils::incrementByteOffset(unsigned _byteSize, unsigned _byteOffsetPos
 	else
 		m_context
 			<< dupInstruction(_byteOffsetPosition + 1) << Instruction::MUL
-			<< swapInstruction(_byteOffsetPosition) << Instruction::POP;
+			<< Instruction::SWAPE<<bytes{(uint8_t)(_byteOffsetPosition)} << Instruction::POP;
 }

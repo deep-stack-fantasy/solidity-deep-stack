@@ -431,7 +431,8 @@ void CompilerContext::appendInlineAssembly(
 		}
 		else
 		{
-			_assembly.appendInstruction(swapInstruction(static_cast<unsigned>(stackDiff)));
+			_assembly.appendInstruction(Instruction::SWAPE);
+			_assembly.appendData(bytes{(uint8_t)(stackDiff)});
 			_assembly.appendInstruction(Instruction::POP);
 		}
 	};
