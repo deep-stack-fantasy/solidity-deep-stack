@@ -300,7 +300,7 @@ void OptimizedEVMCodeTransform::createStackLayout(std::shared_ptr<DebugData cons
 					YulString varName = slotVariableName(_slot);
 					string msg =
 						(varName.empty() ? "Slot " + stackSlotToString(_slot) : "Variable " + varName.str())
-						+ " is " + to_string(*depth - (DSF_MAX_STACK_ACCESS-1)) + " too deep in the stack " + stackToString(m_stack);
+						+ " is " + to_string(*depth - (evmasm::DSF_MAX_STACK_ACCESS-1)) + " too deep in the stack " + stackToString(m_stack);
 					m_stackErrors.emplace_back(StackTooDeepError(
 						m_currentFunctionInfo ? m_currentFunctionInfo->function.name : YulString{},
 						varName,
