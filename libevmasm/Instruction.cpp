@@ -341,7 +341,10 @@ InstructionInfo solidity::evmasm::instructionInfo(Instruction _inst, langutil::E
 	}
 }
 
+
 bool solidity::evmasm::isValidInstruction(Instruction _inst)
 {
+	//dsf todo done
+	if (_inst == Instruction::DUPE || _inst == Instruction::SWAPE) return true;
 	return !!c_instructionInfo.count(_inst);
 }

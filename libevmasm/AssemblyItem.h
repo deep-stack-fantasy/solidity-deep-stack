@@ -71,6 +71,14 @@ public:
 		m_instruction(_i),
 		m_location(std::move(_location))
 	{}
+
+	AssemblyItem(Instruction _i,uint8_t opt, langutil::SourceLocation _location = langutil::SourceLocation()):
+		m_type(Operation),
+		m_instruction(_i),
+		m_instruction_opt(opt),
+		m_location(std::move(_location))
+	{}
+
 	AssemblyItem(AssemblyItemType _type, u256 _data = 0, langutil::SourceLocation _location = langutil::SourceLocation()):
 		m_type(_type),
 		m_location(std::move(_location))
@@ -119,13 +127,14 @@ public:
 	/// @returns the instruction of this item (only valid if type() == Operation)
 	Instruction instruction() const { assertThrow(m_type == Operation, util::Exception, ""); return m_instruction; }
 
+	uint8_t instruction_opt() const { assertThrow(m_type == Operation, util::Exception, ""); return m_instruction_opt; }
 	/// @returns true if the type and data of the items are equal.
 	bool operator==(AssemblyItem const& _other) const
 	{
 		if (type() != _other.type())
 			return false;
 		if (type() == Operation)
-			return instruction() == _other.instruction();
+			return instruction() == _other.instruction() && instruction_opt() == _other.instruction_opt();
 		else if (type() == VerbatimBytecode)
 			return *m_verbatimBytecode == *_other.m_verbatimBytecode;
 		else
@@ -138,7 +147,8 @@ public:
 		if (type() != _other.type())
 			return type() < _other.type();
 		else if (type() == Operation)
-			return instruction() < _other.instruction();
+			return instruction() < _other.instruction() ||
+				   (instruction() == _other.instruction() && instruction_opt() < _other.instruction_opt());
 		else if (type() == VerbatimBytecode)
 			return *m_verbatimBytecode == *_other.m_verbatimBytecode;
 		else
@@ -191,6 +201,7 @@ private:
 
 	AssemblyItemType m_type;
 	Instruction m_instruction; ///< Only valid if m_type == Operation
+	uint8_t m_instruction_opt; ///< Only valid if m_type == Operation. Only for `SWAPE` and `DUPE`
 	std::shared_ptr<u256> m_data; ///< Only valid if m_type != Operation
 	/// If m_type == VerbatimBytecode, this holds number of arguments, number of
 	/// return variables and verbatim bytecode.

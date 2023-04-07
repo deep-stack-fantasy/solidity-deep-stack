@@ -121,6 +121,10 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, Precision _precision) 
 	switch (m_type)
 	{
 	case Operation:
+		//DSF todo done
+		if (m_instruction_opt != 0)
+			return 2;
+		return 1;
 	case Tag: // 1 byte for the JUMPDEST
 		return 1;
 	case Push:
@@ -167,10 +171,21 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, Precision _precision) 
 
 size_t AssemblyItem::arguments() const
 {
-	if (type() == Operation)
+	if (type() == Operation){
+		// dsf todo done
+		if (m_instruction_opt!=0){
+			if (m_instruction == Instruction::DUPE){
+				return m_instruction_opt;
+			}else if (m_instruction == Instruction::SWAPE){
+				return m_instruction_opt+1;
+			}else{
+				assertThrow(true, util::Exception, "DSF Exception: unexpected instruction");
+			}
+		}
 		// The latest EVMVersion is used here, since the InstructionInfo is assumed to be
 		// the same across all EVM versions except for the instruction name.
 		return static_cast<size_t>(instructionInfo(instruction(), EVMVersion()).args);
+	}
 	else if (type() == VerbatimBytecode)
 		return get<0>(*m_verbatimBytecode);
 	else if (type() == AssignImmutable)
@@ -184,6 +199,14 @@ size_t AssemblyItem::returnValues() const
 	switch (m_type)
 	{
 	case Operation:
+		// dsf todo done
+		if (m_instruction_opt!=0){
+			if (m_instruction == Instruction::DUPE||m_instruction == Instruction::SWAPE){
+				return m_instruction_opt+1;
+			}else{
+				assertThrow(true, util::Exception, "DSF Exception: unexpected instruction");
+			}
+		}
 		// The latest EVMVersion is used here, since the InstructionInfo is assumed to be
 		// the same across all EVM versions except for the instruction name.
 		return static_cast<size_t>(instructionInfo(instruction(), EVMVersion()).ret);
@@ -214,6 +237,7 @@ bool AssemblyItem::canBeFunctional() const
 	switch (m_type)
 	{
 	case Operation:
+		//dsf todo done
 		return !isDupInstruction(instruction()) && !isSwapInstruction(instruction());
 	case Push:
 	case PushTag:
@@ -254,8 +278,11 @@ string AssemblyItem::toAssemblyText(Assembly const& _assembly) const
 	{
 	case Operation:
 	{
+		//dsf todo done
 		assertThrow(isValidInstruction(instruction()), AssemblyException, "Invalid instruction.");
 		text = util::toLower(instructionInfo(instruction(), _assembly.evmVersion()).name);
+		if (m_instruction_opt!=0)
+			text +="_"+toHex(m_instruction_opt); //dsf todo check
 		break;
 	}
 	case Push:
@@ -333,6 +360,7 @@ ostream& solidity::evmasm::operator<<(ostream& _out, AssemblyItem const& _item)
 	switch (_item.type())
 	{
 	case Operation:
+		//dsf todo
 		_out << " " << instructionInfo(_item.instruction(), EVMVersion()).name;
 		if (_item.instruction() == Instruction::JUMP || _item.instruction() == Instruction::JUMPI)
 			_out << "\t" << _item.getJumpTypeAsString();

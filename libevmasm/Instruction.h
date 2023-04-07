@@ -216,13 +216,13 @@ inline bool isPushInstruction(Instruction _inst)
 /// @returns true if the instruction is a DUP
 inline bool isDupInstruction(Instruction _inst)
 {
-	return Instruction::DUP1 <= _inst && _inst <= Instruction::DUP16;
+	return (Instruction::DUP1 <= _inst && _inst <= Instruction::DUP16) || Instruction::DUPE == _inst;
 }
 
 /// @returns true if the instruction is a SWAP
 inline bool isSwapInstruction(Instruction _inst)
 {
-	return Instruction::SWAP1 <= _inst && _inst <= Instruction::SWAP16;
+	return (Instruction::SWAP1 <= _inst && _inst <= Instruction::SWAP16) || Instruction::SWAPE == _inst;
 }
 
 /// @returns true if the instruction is a LOG
