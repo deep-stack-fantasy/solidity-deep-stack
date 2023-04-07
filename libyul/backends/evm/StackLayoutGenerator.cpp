@@ -113,9 +113,9 @@ vector<StackLayoutGenerator::StackTooDeep> findStackTooDeep(Stack const& _source
 		_target,
 		[&](unsigned _i)
 		{
-			if (_i > 16)
+			if (_i > evmasm::DSF_MAX_STACK_ACCESS)
 				stackTooDeepErrors.emplace_back(StackLayoutGenerator::StackTooDeep{
-					_i - 16,
+					_i - evmasm::DSF_MAX_STACK_ACCESS,
 					getVariableChoices(currentStack | ranges::views::take_last(_i + 1))
 				});
 		},
@@ -125,10 +125,10 @@ vector<StackLayoutGenerator::StackTooDeep> findStackTooDeep(Stack const& _source
 				return;
 			if (
 				auto depth = util::findOffset(currentStack | ranges::views::reverse, _slot);
-				depth && *depth >= 16
+				depth && *depth >= evmasm::DSF_MAX_STACK_ACCESS
 			)
 				stackTooDeepErrors.emplace_back(StackLayoutGenerator::StackTooDeep{
-					*depth - 15,
+					*depth - (evmasm::DSF_MAX_STACK_ACCESS-1),
 					getVariableChoices(currentStack | ranges::views::take_last(*depth + 1))
 				});
 		},

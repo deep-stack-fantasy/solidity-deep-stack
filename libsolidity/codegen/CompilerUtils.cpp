@@ -475,7 +475,7 @@ void CompilerUtils::encodeToMemory(
 			m_context << Instruction::DUP1 << u256(32) << Instruction::ADD;
 			dynPointers++;
 			assertThrow(
-				(argSize + dynPointers) < 16,
+				(argSize + dynPointers) < DSF_MAX_STACK_ACCESS,
 				StackTooDeepError,
 				util::stackTooDeepString
 			);
@@ -1415,7 +1415,7 @@ void CompilerUtils::moveToStackVariable(VariableDeclaration const& _variable)
 	unsigned const size = _variable.annotation().type->sizeOnStack();
 	solAssert(stackPosition >= size, "Variable size and position mismatch.");
 	// move variable starting from its top end in the stack
-	if (stackPosition - size + 1 > 16)
+	if (stackPosition - size + 1 > DSF_MAX_STACK_ACCESS)
 		BOOST_THROW_EXCEPTION(
 			StackTooDeepError() <<
 			errinfo_sourceLocation(_variable.location()) <<

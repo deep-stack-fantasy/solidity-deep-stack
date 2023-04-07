@@ -841,7 +841,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 					}
 					else
 						solAssert(variable->type()->sizeOnStack() == 1, "");
-					if (stackDiff < 1 || stackDiff > 16)
+					if (stackDiff < 1 || stackDiff > DSF_MAX_STACK_ACCESS)
 						BOOST_THROW_EXCEPTION(
 							StackTooDeepError() <<
 							errinfo_sourceLocation(_inlineAssembly.location()) <<
@@ -915,7 +915,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 			else
 				solAssert(suffix.empty(), "");
 
-			if (stackDiff > 16 || stackDiff < 1)
+			if (stackDiff > DSF_MAX_STACK_ACCESS || stackDiff < 1)
 				BOOST_THROW_EXCEPTION(
 					StackTooDeepError() <<
 					errinfo_sourceLocation(_inlineAssembly.location()) <<
