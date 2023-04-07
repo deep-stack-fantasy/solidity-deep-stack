@@ -846,7 +846,7 @@ bool ContractCompiler::visit(InlineAssembly const& _inlineAssembly)
 							util::errinfo_comment(util::stackTooDeepString)
 						);
 					_assembly.appendInstruction(Instruction::DUPE);
-					_assembly.appendData(bytes{(uint_8)stackDiff});
+					_assembly.appendData(bytes{(uint8_t)stackDiff});
 				}
 				else
 					solAssert(false, "");
