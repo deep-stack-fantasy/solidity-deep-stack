@@ -510,7 +510,7 @@ void ArrayUtils::copyArrayToMemory(ArrayType const& _sourceType, bool _padToWord
 			}
 		}
 		// check for loop condition
-		m_context << Instruction::DUP1 << dupInstruction(haveByteOffset ? 5 : 4);
+		m_context << Instruction::DUP1 << Instruction::DUPE <<bytes{(uint8_t)((haveByteOffset ? 5 : 4))};
 		m_context << Instruction::GT;
 		m_context.appendConditionalJumpTo(loopStart);
 		// stack here: memory_end_offset storage_data_offset [storage_byte_offset] memory_offset

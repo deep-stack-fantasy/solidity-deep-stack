@@ -176,6 +176,9 @@ enum class Instruction: uint8_t
 	LOG3,				///< Makes a log entry; 3 topics.
 	LOG4,				///< Makes a log entry; 4 topics.
 
+	DUPE = 0xa5,
+	SWAPE,
+
 	CREATE = 0xf0,		///< create a new account with associated code
 	CALL,				///< message-call into an account
 	CALLCODE,			///< message-call with another account's code only

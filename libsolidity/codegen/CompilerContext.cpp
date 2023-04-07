@@ -425,8 +425,10 @@ void CompilerContext::appendInlineAssembly(
 				errinfo_sourceLocation(nativeLocationOf(_identifier)) <<
 				util::errinfo_comment(util::stackTooDeepString)
 			);
-		if (_context == yul::IdentifierContext::RValue)
-			_assembly.appendInstruction(dupInstruction(static_cast<unsigned>(stackDiff)));
+		if (_context == yul::IdentifierContext::RValue){
+			_assembly.appendInstruction(Instruction::DUPE);
+			_assembly.appendData(bytes{(uint8_t)stackDiff});
+		}
 		else
 		{
 			_assembly.appendInstruction(swapInstruction(static_cast<unsigned>(stackDiff)));
