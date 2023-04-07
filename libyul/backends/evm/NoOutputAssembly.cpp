@@ -42,6 +42,9 @@ void NoOutputAssembly::appendInstruction(evmasm::Instruction _instr)
 
 void NoOutputAssembly::appendInstruction(evmasm::Instruction _instr, uint8_t _opt)
 {
+	//DSF: make compiler happy
+	(void) _opt;
+
 	if (_instr == evmasm::Instruction::DUPE)
 		m_stackHeight += 1;
 	else if (_instr == evmasm::Instruction::SWAPE)
