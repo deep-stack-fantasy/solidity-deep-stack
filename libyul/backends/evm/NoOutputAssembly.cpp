@@ -40,6 +40,16 @@ void NoOutputAssembly::appendInstruction(evmasm::Instruction _instr)
 	m_stackHeight += instructionInfo(_instr, m_evmVersion).ret - instructionInfo(_instr, m_evmVersion).args;
 }
 
+void NoOutputAssembly::appendInstruction(evmasm::Instruction _instr, uint8_t _opt)
+{
+	if (_instr == evmasm::Instruction::DUPE)
+		m_stackHeight += 1;
+	else if (_instr == evmasm::Instruction::SWAPE)
+		m_stackHeight +=0;
+	else
+	    m_stackHeight += instructionInfo(_instr, m_evmVersion).ret - instructionInfo(_instr, m_evmVersion).args;
+}
+
 void NoOutputAssembly::appendConstant(u256 const&)
 {
 	appendInstruction(evmasm::pushInstruction(1));

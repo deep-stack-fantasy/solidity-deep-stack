@@ -426,8 +426,7 @@ void CompilerContext::appendInlineAssembly(
 				util::errinfo_comment(util::stackTooDeepString)
 			);
 		if (_context == yul::IdentifierContext::RValue){
-			_assembly.appendInstruction(Instruction::DUPE);
-			_assembly.appendData(bytes{(uint8_t)stackDiff});
+			_assembly.appendInstruction(Instruction::DUPE,(uint8_t)stackDiff);
 		}
 		else
 		{

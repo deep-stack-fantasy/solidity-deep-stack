@@ -68,6 +68,7 @@ public:
 	virtual void setStackHeight(int height) = 0;
 	/// Append an EVM instruction.
 	virtual void appendInstruction(evmasm::Instruction _instruction) = 0;
+	virtual void appendInstruction(evmasm::Instruction _instruction, uint8_t _opt) = 0;
 	/// Append a constant.
 	virtual void appendConstant(u256 const& _constant) = 0;
 	/// Append a label.

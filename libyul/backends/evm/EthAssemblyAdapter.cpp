@@ -64,6 +64,11 @@ void EthAssemblyAdapter::appendInstruction(evmasm::Instruction _instruction)
 	m_assembly.append(_instruction);
 }
 
+void EthAssemblyAdapter::appendInstruction(evmasm::Instruction _instruction, uint8_t _opt)
+{
+	m_assembly.append(evmasm::AssemblyItem(_instruction,_opt));
+}
+
 void EthAssemblyAdapter::appendConstant(u256 const& _constant)
 {
 	m_assembly.append(_constant);
