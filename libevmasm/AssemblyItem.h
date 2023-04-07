@@ -201,7 +201,7 @@ private:
 
 	AssemblyItemType m_type;
 	Instruction m_instruction; ///< Only valid if m_type == Operation
-	uint8_t m_instruction_opt; ///< Only valid if m_type == Operation. Only for `SWAPE` and `DUPE`
+	uint8_t m_instruction_opt = 0; ///< Only valid if m_type == Operation. Only for `SWAPE` and `DUPE`
 	std::shared_ptr<u256> m_data; ///< Only valid if m_type != Operation
 	/// If m_type == VerbatimBytecode, this holds number of arguments, number of
 	/// return variables and verbatim bytecode.
