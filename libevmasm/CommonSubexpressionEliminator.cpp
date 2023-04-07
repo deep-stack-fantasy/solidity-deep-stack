@@ -474,8 +474,7 @@ void CSECodeGenerator::appendDup(int _fromPosition, SourceLocation const& _locat
 	int instructionNum = 1 + m_stackHeight - _fromPosition;
 	assertThrow(instructionNum <= 16, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
-	appendItem(AssemblyItem(Instruction::DUPE, _location));
-	appendItem(AssemblyItem(bytes{(uint8_t)(instructionNum)}, 0, 0));
+	appendItem(AssemblyItem(Instruction::DUPE, (uint8_t)(instructionNum),_location));
 	m_stack[m_stackHeight] = m_stack[_fromPosition];
 	m_classPositions[m_stack[m_stackHeight]].insert(m_stackHeight);
 }
