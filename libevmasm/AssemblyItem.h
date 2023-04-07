@@ -81,6 +81,7 @@ public:
 		m_location(std::move(_location))
 	{
 		assertThrow(_i==Instruction::DUPE || _i==Instruction::SWAPE, util::Exception, "DSF Exception: unexpected instruction");
+		assertThrow(opt ==0, util::Exception, "DSF Exception: invalid instruction opt")
 	}
 
 	AssemblyItem(AssemblyItemType _type, u256 _data = 0, langutil::SourceLocation _location = langutil::SourceLocation()):
