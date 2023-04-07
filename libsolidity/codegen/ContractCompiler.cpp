@@ -366,7 +366,8 @@ void ContractCompiler::appendInternalSelector(
 	{
 		size_t pivotIndex = _ids.size() / 2;
 		FixedHash<4> pivot{_ids.at(pivotIndex)};
-		m_context << Instruction::DUPE << bytes{(uint8_t)(1)} << u256(FixedHash<4>::Arith(pivot)) << Instruction::GT;
+		m_context << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)1)
+				  << u256(FixedHash<4>::Arith(pivot)) << Instruction::GT;
 		evmasm::AssemblyItem lessTag{m_context.appendConditionalJump()};
 		// Here, we have funid >= pivot
 		vector<FixedHash<4>> larger{_ids.begin() + static_cast<ptrdiff_t>(pivotIndex), _ids.end()};
@@ -380,7 +381,8 @@ void ContractCompiler::appendInternalSelector(
 	{
 		for (auto const& id: _ids)
 		{
-			m_context << Instruction::DUPE << bytes{(uint8_t)(1)} << u256(FixedHash<4>::Arith(id)) << Instruction::EQ;
+			m_context << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)(1))
+					  << u256(FixedHash<4>::Arith(id)) << Instruction::EQ;
 			m_context.appendConditionalJumpTo(_entryPoints.at(id));
 		}
 		m_context.appendJumpTo(_notFoundTag);
@@ -519,7 +521,7 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 		{
 			// If the function is not a view function and is called without DELEGATECALL,
 			// we revert.
-			m_context << Instruction::DUPE << bytes{(uint8_t)(2)};
+			m_context << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)(2));
 			m_context.appendConditionalRevert(false, "Non-view function of library called without DELEGATECALL");
 		}
 		m_context.setStackOffset(0);
