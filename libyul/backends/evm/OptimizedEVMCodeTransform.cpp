@@ -290,7 +290,8 @@ void OptimizedEVMCodeTransform::createStackLayout(std::shared_ptr<DebugData cons
 			{
 				if (*depth < 16)
 				{
-					m_assembly.appendInstruction(evmasm::dupInstruction(static_cast<unsigned>(*depth + 1)));
+					m_assembly.appendInstruction(evmasm::Instruction::DUPE);
+					m_assembly.appendData(bytes{(uint8_t)(*depth + 1)});
 					return;
 				}
 				else if (!canBeFreelyGenerated(_slot))

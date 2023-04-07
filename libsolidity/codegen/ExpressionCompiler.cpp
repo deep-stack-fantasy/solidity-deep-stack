@@ -118,7 +118,7 @@ void ExpressionCompiler::appendConstStateVariableAccessor(VariableDeclaration co
 	acceptAndConvert(*_varDecl.value(), *_varDecl.annotation().type);
 
 	// append return
-	m_context << dupInstruction(_varDecl.annotation().type->sizeOnStack() + 1);
+	m_context << Instruction::DUPE << bytes{(uint8_t)(_varDecl.annotation().type->sizeOnStack() + 1)};
 	m_context.appendJump(evmasm::AssemblyItem::JumpType::OutOfFunction);
 }
 
@@ -271,7 +271,7 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 			errinfo_sourceLocation(_varDecl.location()) <<
 			util::errinfo_comment(util::stackTooDeepString)
 		);
-	m_context << dupInstruction(retSizeOnStack + 1);
+	m_context << Instruction::DUPE << bytes{(uint8_t)(retSizeOnStack + 1)};
 	m_context.appendJump(evmasm::AssemblyItem::JumpType::OutOfFunction);
 }
 
@@ -760,7 +760,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 
 			if (function.saltSet())
 			{
-				m_context << dupInstruction(2 + (function.valueSet() ? 1 : 0));
+				m_context << Instruction::DUPE << bytes{(uint8_t)(2 + (function.valueSet() ? 1 : 0))};
 				m_context << Instruction::SWAP1;
 			}
 
@@ -769,7 +769,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 
 			// now: [salt], [value], [salt], size, offset
 			if (function.valueSet())
-				m_context << dupInstruction(3 + (function.saltSet() ? 1 : 0));
+				m_context << Instruction::DUPE << bytes{(uint8_t)(3 + (function.saltSet() ? 1 : 0))};
 			else
 				m_context << u256(0);
 
@@ -2711,7 +2711,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	utils().fetchFreeMemoryPointer();
 	if (!_functionType.isBareCall())
 	{
-		m_context << dupInstruction(2 + gasValueSize + CompilerUtils::sizeOnStack(argumentTypes));
+		m_context << Instruction::DUPE << bytes{(uint8_t)(2 + gasValueSize + CompilerUtils::sizeOnStack(argumentTypes))};
 		utils().storeInMemoryDynamic(IntegerType(8 * CompilerUtils::dataStartOffset), false);
 	}
 
@@ -2766,10 +2766,10 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	else if (useStaticCall)
 		solAssert(!_functionType.valueSet(), "Value set for staticcall");
 	else if (_functionType.valueSet())
-		m_context << dupInstruction(m_context.baseToCurrentStackOffset(valueStackPos));
+		m_context << Instruction::DUPE << bytes{(uint8_t)(m_context.baseToCurrentStackOffset(valueStackPos))};
 	else
 		m_context << u256(0);
-	m_context << dupInstruction(m_context.baseToCurrentStackOffset(contractStackPos));
+	m_context << Instruction::DUPE << bytes{(uint8_t)(m_context.baseToCurrentStackOffset(contractStackPos))};
 
 	bool existenceChecked = false;
 	// Check the target contract exists (has code) for non-low-level calls.
@@ -2793,7 +2793,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	}
 
 	if (_functionType.gasSet())
-		m_context << dupInstruction(m_context.baseToCurrentStackOffset(gasStackPos));
+		m_context << Instruction::DUPE << bytes{(uint8_t)(m_context.baseToCurrentStackOffset(gasStackPos))};
 	else if (m_context.evmVersion().canOverchargeGasForCall())
 		// Send all gas (requires tangerine whistle EVM)
 		m_context << Instruction::GAS;

@@ -540,9 +540,9 @@ void CompilerUtils::encodeToMemory(
 				StackTooDeepError,
 				util::stackTooDeepString
 			);
-			m_context << dupInstruction(2 + dynPointers) << Instruction::DUP2;
+			m_context << Instruction::DUPE << bytes{(uint8_t)(2 + dynPointers)} << Instruction::DUPE << bytes{(uint8_t)2};
 			m_context << Instruction::SUB;
-			m_context << dupInstruction(2 + dynPointers - thisDynPointer);
+			m_context << Instruction::DUPE << bytes{(uint8_t)(2 + dynPointers - thisDynPointer)};
 			m_context << Instruction::MSTORE;
 			// stack: ... <end_of_mem>
 			if (_givenTypes[i]->category() == Type::Category::StringLiteral)
@@ -583,7 +583,7 @@ void CompilerUtils::encodeToMemory(
 				copyToStackTop(argSize - stackPos + dynPointers + 2, arrayType->sizeOnStack());
 				// stack: ... <end_of_mem> <value...>
 				// copy length to memory
-				m_context << dupInstruction(1 + arrayType->sizeOnStack());
+				m_context << Instruction::DUPE << bytes{(uint8_t)(1 + arrayType->sizeOnStack())};
 				ArrayUtils(m_context).retrieveLength(*arrayType, 1);
 				// stack: ... <end_of_mem> <value...> <end_of_mem'> <length>
 				storeInMemoryDynamic(*TypeProvider::uint256(), true);
@@ -1433,7 +1433,7 @@ void CompilerUtils::copyToStackTop(unsigned _stackDepth, unsigned _itemSize)
 		util::stackTooDeepString
 	);
 	for (unsigned i = 0; i < _itemSize; ++i)
-		m_context << dupInstruction(_stackDepth);
+		m_context << Instruction::DUPE << bytes{(uint8_t)(_stackDepth)};
 }
 
 void CompilerUtils::moveToStackTop(unsigned _stackDepth, unsigned _itemSize)

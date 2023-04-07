@@ -56,7 +56,7 @@ void StackVariable::retrieveValue(SourceLocation const& _location, bool) const
 		);
 	solAssert(stackPos + 1 >= m_size, "Size and stack pos mismatch.");
 	for (unsigned i = 0; i < m_size; ++i)
-		m_context << dupInstruction(stackPos + 1);
+		m_context << Instruction::DUPE << bytes{(uint8_t)(stackPos + 1)};
 }
 
 void StackVariable::storeValue(Type const&, SourceLocation const& _location, bool _move) const
@@ -421,7 +421,7 @@ void StorageItem::storeValue(Type const& _sourceType, SourceLocation const& _loc
 					}
 					unsigned stackSize = sourceMemberType->sizeOnStack();
 					pair<u256, unsigned> const& offsets = structType.storageOffsetsOfMember(member.name);
-					m_context << dupInstruction(1 + stackSize) << offsets.first << Instruction::ADD;
+					m_context << Instruction::DUPE << bytes{(uint8_t)(1 + stackSize)} << offsets.first << Instruction::ADD;
 					m_context << u256(offsets.second);
 					// stack: source_ref target_ref target_off source_value... target_member_ref target_member_byte_off
 					StorageItem(m_context, *memberType).storeValue(*sourceMemberType, _location, true);
