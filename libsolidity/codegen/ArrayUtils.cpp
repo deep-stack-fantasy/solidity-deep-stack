@@ -65,7 +65,7 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 	// stack: source_ref [source_length] target_ref
 	// store target_ref
 	for (unsigned i = _sourceType.sizeOnStack(); i > 0; --i)
-		m_context << Instruction::SWAPE << bytes{(uint8_t)i};
+		m_context << AssemblyItem(Instruction::SWAPE,(uint8_t)i);
 	// stack: target_ref source_ref [source_length]
 
 	if (_targetType.isByteArrayOrString())
@@ -248,7 +248,7 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 				utils.incrementByteOffset(sourceBaseType->storageBytes(), 1, haveByteOffsetTarget ? 5 : 4);
 			else
 			{
-				_context << Instruction::SWAPE << bytes{(uint8_t)(2 + byteOffsetSize)};
+				_context << AssemblyItem(Instruction::SWAPE, (uint8_t)(2 + byteOffsetSize));
 				if (sourceIsStorage)
 					_context << sourceBaseType->storageSize();
 				else if (_sourceType.location() == DataLocation::Memory)
@@ -257,17 +257,17 @@ void ArrayUtils::copyArrayToStorage(ArrayType const& _targetType, ArrayType cons
 					_context << sourceBaseType->calldataHeadSize();
 				_context
 					<< Instruction::ADD
-					<< Instruction::SWAPE << bytes{(uint8_t)(2 + byteOffsetSize)};
+					<< AssemblyItem(Instruction::SWAPE,(uint8_t)(2 + byteOffsetSize));
 			}
 			// increment target
 			if (haveByteOffsetTarget)
 				utils.incrementByteOffset(targetBaseType->storageBytes(), byteOffsetSize, byteOffsetSize + 2);
 			else
 				_context
-					<< Instruction::SWAPE<<bytes{(uint8_t)(1 + byteOffsetSize)}
+					<< AssemblyItem(Instruction::SWAPE, (uint8_t)(1 + byteOffsetSize))
 					<< targetBaseType->storageSize()
 					<< Instruction::ADD
-					<< Instruction::SWAPE<<bytes{(uint8_t)(1 + byteOffsetSize)};
+					<< AssemblyItem(Instruction::SWAPE, (uint8_t)(1 + byteOffsetSize));
 			_context.appendJumpTo(copyLoopStart);
 			_context << copyLoopEnd;
 			if (haveByteOffsetTarget)
@@ -1181,10 +1181,10 @@ void ArrayUtils::incrementByteOffset(unsigned _byteSize, unsigned _byteOffsetPos
 	//     byteOffset = 0;
 	// }
 	if (_byteOffsetPosition > 1)
-		m_context << Instruction::SWAPE<<bytes{(uint8_t)(_byteOffsetPosition - 1)};
+		m_context << AssemblyItem(Instruction::SWAPE, (uint8_t)(_byteOffsetPosition - 1));
 	m_context << u256(_byteSize) << Instruction::ADD;
 	if (_byteOffsetPosition > 1)
-		m_context << Instruction::SWAPE<<bytes{(uint8_t)(_byteOffsetPosition - 1)};
+		m_context << AssemblyItem(Instruction::SWAPE, (uint8_t)(_byteOffsetPosition - 1));
 	// compute, X := (byteOffset + byteSize - 1) / 32, should be 1 iff byteOffset + bytesize > 32
 	m_context
 		<< u256(32) << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)(1 + _byteOffsetPosition))

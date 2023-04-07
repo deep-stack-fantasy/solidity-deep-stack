@@ -70,7 +70,7 @@ void StackVariable::storeValue(Type const&, SourceLocation const& _location, boo
 		);
 	else if (stackDiff > 0)
 		for (unsigned i = 0; i < m_size; ++i)
-			m_context << Instruction::SWAPE<<bytes{(uint8_t)(stackDiff) }<< Instruction::POP;
+			m_context <<AssemblyItem(Instruction::SWAPE, (uint8_t)(stackDiff))<< Instruction::POP;
 	if (!_move)
 		retrieveValue(_location);
 }

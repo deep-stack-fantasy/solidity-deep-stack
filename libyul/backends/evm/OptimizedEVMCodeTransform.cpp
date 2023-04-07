@@ -260,8 +260,7 @@ void OptimizedEVMCodeTransform::createStackLayout(std::shared_ptr<DebugData cons
 			yulAssert(static_cast<int>(m_stack.size()) == m_assembly.stackHeight(), "");
 			yulAssert(_i > 0 && _i < m_stack.size(), "");
 			if (_i <= 16){
-				m_assembly.appendInstruction(evmasm::Instruction::SWAPE);
-				m_assembly.appendVerbatim(bytes{(uint8_t)(_i)},0,0);
+				m_assembly.appendInstruction(evmasm::Instruction::SWAPE,(uint8_t)(_i));
 			}
 			else
 			{
