@@ -1187,13 +1187,13 @@ void ArrayUtils::incrementByteOffset(unsigned _byteSize, unsigned _byteOffsetPos
 		m_context << swapInstruction(_byteOffsetPosition - 1);
 	// compute, X := (byteOffset + byteSize - 1) / 32, should be 1 iff byteOffset + bytesize > 32
 	m_context
-		<< u256(32) << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)(1 + _byteOffsetPosition)) ;
+		<< u256(32) << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)(1 + _byteOffsetPosition))
 		<< u256(_byteSize - 1)
 		<< Instruction::ADD << Instruction::DIV;
 	// increment storage offset if X == 1 (just add X to it)
 	// stack: X
 	m_context
-		<< swapInstruction(_storageOffsetPosition) << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)(_storageOffsetPosition + 1)) ;
+		<< swapInstruction(_storageOffsetPosition) << evmasm::AssemblyItem(Instruction::DUPE, (uint8_t)(_storageOffsetPosition + 1))
 		<< Instruction::ADD << swapInstruction(_storageOffsetPosition);
 	// stack: X
 	// set source_byte_offset to zero if X == 1 (using source_byte_offset *= 1 - X)
