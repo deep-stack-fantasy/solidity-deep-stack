@@ -264,6 +264,7 @@ void OptimizedEVMCodeTransform::createStackLayout(std::shared_ptr<DebugData cons
 			}
 			else
 			{
+				//todo dsf?
 				int deficit = static_cast<int>(_i) - 16;
 				StackSlot const& deepSlot = m_stack.at(m_stack.size() - _i - 1);
 				YulString varNameDeep = slotVariableName(deepSlot);

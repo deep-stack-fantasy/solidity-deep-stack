@@ -472,7 +472,7 @@ void CSECodeGenerator::appendDup(int _fromPosition, SourceLocation const& _locat
 {
 	assertThrow(_fromPosition != c_invalidPosition, OptimizerException, "");
 	int instructionNum = 1 + m_stackHeight - _fromPosition;
-	assertThrow(instructionNum <= 16, StackTooDeepException, util::stackTooDeepString);
+	assertThrow(instructionNum <= DSF_MAX_STACK_ACCESS, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
 	appendItem(AssemblyItem(Instruction::DUPE, (uint8_t)(instructionNum),_location));
 	m_stack[m_stackHeight] = m_stack[_fromPosition];
@@ -485,7 +485,7 @@ void CSECodeGenerator::appendOrRemoveSwap(int _fromPosition, SourceLocation cons
 	if (_fromPosition == m_stackHeight)
 		return;
 	int instructionNum = m_stackHeight - _fromPosition;
-	assertThrow(instructionNum <= 16, StackTooDeepException, util::stackTooDeepString);
+	assertThrow(instructionNum <= DSF_MAX_STACK_ACCESS, StackTooDeepException, util::stackTooDeepString);
 	assertThrow(1 <= instructionNum, OptimizerException, "Invalid stack access.");
 	appendItem(AssemblyItem(Instruction::SWAPE,(uint8_t)(instructionNum), _location));
 

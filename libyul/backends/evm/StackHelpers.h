@@ -23,6 +23,7 @@
 
 #include <libsolutil/Visitor.h>
 
+#include "libevmasm/Instruction.h"
 #include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/view/enumerate.hpp>
@@ -326,7 +327,7 @@ private:
 			yulAssert(ops.sourceMultiplicity(i) == 0 && (ops.targetIsArbitrary(i) || ops.targetMultiplicity(i) == 0), "");
 		yulAssert(ops.isCompatible(sourceTop, sourceTop), "");
 
-		auto swappableOffsets = ranges::views::iota(size > 17 ? size - 17 : 0u, size);
+		auto swappableOffsets = ranges::views::iota(size > (evmasm::DSF_MAX_STACK_ACCESS+1) ? size - (evmasm::DSF_MAX_STACK_ACCESS+1) : 0u, size);
 
 		// If we find a lower slot that is out of position, but also compatible with the top, swap that up.
 		for (size_t offset: swappableOffsets)

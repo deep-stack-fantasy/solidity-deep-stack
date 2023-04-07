@@ -180,6 +180,7 @@ void CodeTransform::operator()(VariableDeclaration const& _varDecl)
 			bool foundUnusedSlot = false;
 			for (auto it = m_unusedStackSlots.begin(); it != m_unusedStackSlots.end(); ++it)
 			{
+				//todo dsf?
 				if (m_assembly.stackHeight() - *it > 17)
 					continue;
 				foundUnusedSlot = true;
@@ -456,16 +457,16 @@ void CodeTransform::operator()(FunctionDefinition const& _function)
 				&std::get<Scope::Variable>(virtualFunctionScope->identifiers.at(returnVariable.name))
 			)) = static_cast<int>(n);
 
-		if (stackLayout.size() > 17)
+		if (stackLayout.size() > evmasm::DSF_MAX_STACK_ACCESS+1)
 		{
 			StackTooDeepError error(
 				_function.name,
 				YulString{},
-				static_cast<int>(stackLayout.size()) - 17,
+				static_cast<int>(stackLayout.size()) - evmasm::DSF_MAX_STACK_ACCESS+1,
 				"The function " +
 				_function.name.str() +
 				" has " +
-				to_string(stackLayout.size() - 17) +
+				to_string(stackLayout.size() - evmasm::DSF_MAX_STACK_ACCESS+1) +
 				" parameters or return variables too many to fit the stack size."
 			);
 			stackError(std::move(error), m_assembly.stackHeight() - static_cast<int>(_function.parameters.size()));

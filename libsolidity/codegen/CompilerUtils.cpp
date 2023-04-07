@@ -536,7 +536,7 @@ void CompilerUtils::encodeToMemory(
 		{
 			// copy tail pointer (=mem_end - mem_start) to memory
 			assertThrow(
-				(2 + dynPointers) <= 16,
+				(2 + dynPointers) <= DSF_MAX_STACK_ACCESS,
 				StackTooDeepError,
 				util::stackTooDeepString
 			);
@@ -1429,7 +1429,7 @@ void CompilerUtils::moveToStackVariable(VariableDeclaration const& _variable)
 void CompilerUtils::copyToStackTop(unsigned _stackDepth, unsigned _itemSize)
 {
 	assertThrow(
-		_stackDepth <= 16,
+		_stackDepth <= DSF_MAX_STACK_ACCESS,
 		StackTooDeepError,
 		util::stackTooDeepString
 	);
@@ -1455,7 +1455,7 @@ void CompilerUtils::moveIntoStack(unsigned _stackDepth, unsigned _itemSize)
 void CompilerUtils::rotateStackUp(unsigned _items)
 {
 	assertThrow(
-		_items - 1 <= 16,
+		_items - 1 <= DSF_MAX_STACK_ACCESS,
 		StackTooDeepError,
 		util::stackTooDeepString
 	);
@@ -1466,7 +1466,7 @@ void CompilerUtils::rotateStackUp(unsigned _items)
 void CompilerUtils::rotateStackDown(unsigned _items)
 {
 	assertThrow(
-		_items - 1 <= 16,
+		_items - 1 <= DSF_MAX_STACK_ACCESS,
 		StackTooDeepError,
 		util::stackTooDeepString
 	);

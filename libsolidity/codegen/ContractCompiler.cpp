@@ -671,7 +671,7 @@ bool ContractCompiler::visit(FunctionDefinition const& _function)
 	for (size_t i = 0; i < c_returnValuesSize; ++i)
 		stackLayout.push_back(static_cast<int>(i));
 
-	if (stackLayout.size() > 17)
+	if (stackLayout.size() > DSF_MAX_STACK_ACCESS+1)
 		BOOST_THROW_EXCEPTION(
 			StackTooDeepError() <<
 			errinfo_sourceLocation(_function.location()) <<

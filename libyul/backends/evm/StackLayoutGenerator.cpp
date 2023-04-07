@@ -697,7 +697,7 @@ Stack StackLayoutGenerator::compressStack(Stack _stack)
 				break;
 			}
 			else if (auto dupDepth = util::findOffset(_stack | ranges::views::reverse | ranges::views::drop(depth + 1), slot))
-				if (depth + *dupDepth <= 16)
+				if (depth + *dupDepth <= 16) //todo dsf?
 				{
 					firstDupOffset = _stack.size() - depth - 1;
 					break;

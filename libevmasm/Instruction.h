@@ -30,6 +30,8 @@
 namespace solidity::evmasm
 {
 
+const int DSF_MAX_STACK_ACCESS=255;
+
 /// Virtual machine bytecode instruction.
 enum class Instruction: uint8_t
 {
