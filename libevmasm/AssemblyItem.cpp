@@ -154,11 +154,14 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, Precision _precision) 
 			immutableOccurrences = m_immutableOccurrences.value();
 		}
 
-		if (immutableOccurrences != 0)
+		if (immutableOccurrences != 0){
 			// (DUP DUP PUSH <n> ADD MSTORE)* (PUSH <n> ADD MSTORE)
 			// todo dsf
-//			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
-			return (immutableOccurrences - 1) * (7 + 32) + (3 + 32);
+			//			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+			//			return (immutableOccurrences - 1) * (7 + 32) + (3 + 32);
+			// DSF TODO: <5> at Assembly.cpp
+			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+		}
 		else
 			// POP POP
 			return 2;

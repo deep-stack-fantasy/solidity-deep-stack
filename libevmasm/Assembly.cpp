@@ -634,6 +634,7 @@ LinkerObject const& Assembly::assemble() const
 			auto const& offsets = immutableReferencesBySub[i.data()].second;
 			for (size_t i = 0; i < offsets.size(); ++i)
 			{
+				// DSF TODO: <5>
 				if (i != offsets.size() - 1)
 				{
 					ret.bytecode.push_back(uint8_t(Instruction::DUP2));
