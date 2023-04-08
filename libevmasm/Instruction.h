@@ -242,12 +242,14 @@ inline unsigned getPushNumber(Instruction _inst)
 /// @returns the number of DUP Instruction _inst
 inline unsigned getDupNumber(Instruction _inst)
 {
+	assertThrow(_inst != Instruction::DUPE, util::Exception, "DSF Exception");
 	return static_cast<uint8_t>(_inst) - unsigned(Instruction::DUP1) + 1;
 }
 
 /// @returns the number of SWAP Instruction _inst
 inline unsigned getSwapNumber(Instruction _inst)
 {
+	assertThrow(_inst != Instruction::SWAPE, util::Exception, "DSF Exception");
 	return static_cast<uint8_t>(_inst) - unsigned(Instruction::SWAP1) + 1;
 }
 

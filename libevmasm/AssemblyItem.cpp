@@ -156,7 +156,9 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, Precision _precision) 
 
 		if (immutableOccurrences != 0)
 			// (DUP DUP PUSH <n> ADD MSTORE)* (PUSH <n> ADD MSTORE)
-			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+			// todo dsf
+//			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
+			return (immutableOccurrences - 1) * (7 + 32) + (3 + 32);
 		else
 			// POP POP
 			return 2;

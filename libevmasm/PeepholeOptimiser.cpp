@@ -278,7 +278,9 @@ struct DupSwap: SimplePeepholeOptimizerMethod<DupSwap>
 		back_insert_iterator<AssemblyItems> _out
 	)
 	{
+		//todo dsf
 		if (
+			false &&
 			SemanticInformation::isDupInstruction(_dupN) &&
 			SemanticInformation::isSwapInstruction(_swapN) &&
 			getDupNumber(_dupN.instruction()) == getSwapNumber(_swapN.instruction())

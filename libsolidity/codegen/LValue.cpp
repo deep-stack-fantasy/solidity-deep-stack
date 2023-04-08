@@ -92,7 +92,7 @@ void MemoryItem::retrieveValue(SourceLocation const&, bool _remove) const
 	if (m_dataType->isValueType())
 	{
 		if (!_remove)
-			m_context << Instruction::DUP1;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 		CompilerUtils(m_context).loadFromMemoryDynamic(*m_dataType, false, m_padded, false);
 	}
 	else
@@ -132,7 +132,7 @@ void MemoryItem::storeValue(Type const& _sourceType, SourceLocation const&, bool
 
 		solAssert(m_dataType->sizeOnStack() == 1, "");
 		if (!_move)
-			m_context << Instruction::DUP2 << Instruction::SWAP1;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SWAP1;
 		// stack: [value] value lvalue
 		// only store the reference
 		m_context << Instruction::MSTORE;
@@ -220,7 +220,7 @@ void StorageItem::retrieveValue(SourceLocation const&, bool _remove) const
 		if (_remove)
 			m_context << Instruction::POP; // remove byte offset
 		else
-			m_context << Instruction::DUP2;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 		return;
 	}
 	if (!_remove)
@@ -248,7 +248,7 @@ void StorageItem::retrieveValue(SourceLocation const&, bool _remove) const
 			}
 			else if (fun->kind() == FunctionType::Kind::Internal)
 			{
-				m_context << Instruction::DUP1 << Instruction::ISZERO;
+				m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::ISZERO;
 				CompilerUtils(m_context).pushZeroValue(*fun);
 				m_context << Instruction::MUL << Instruction::OR;
 			}
@@ -291,7 +291,7 @@ void StorageItem::storeValue(Type const& _sourceType, SourceLocation const& _loc
 			// offset should be zero
 			m_context << Instruction::POP;
 			if (!_move)
-				m_context << Instruction::DUP2 << Instruction::SWAP1;
+				m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SWAP1;
 
 			m_context << Instruction::SWAP1;
 			utils.convertType(_sourceType, *m_dataType, true);
@@ -305,11 +305,11 @@ void StorageItem::storeValue(Type const& _sourceType, SourceLocation const& _loc
 			m_context << u256(0x100) << Instruction::EXP;
 			// stack: value storage_ref multiplier
 			// fetch old value
-			m_context << Instruction::DUP2 << Instruction::SLOAD;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SLOAD;
 			// stack: value storage_ref multiplier old_full_value
 			// clear bytes in old value
 			m_context
-				<< Instruction::DUP2 << ((u256(1) << (8 * m_dataType->storageBytes())) - 1)
+				<< AssemblyItem(Instruction::DUPE,(uint8_t)2) << ((u256(1) << (8 * m_dataType->storageBytes())) - 1)
 				<< Instruction::MUL;
 			m_context << Instruction::NOT << Instruction::AND << Instruction::SWAP1;
 			// stack: value storage_ref cleared_value multiplier
@@ -389,7 +389,7 @@ void StorageItem::storeValue(Type const& _sourceType, SourceLocation const& _loc
 			{
 				solAssert(sourceType.sizeOnStack() == 1, "");
 				solAssert(structType.sizeOnStack() == 1, "");
-				m_context << Instruction::DUP2 << Instruction::DUP2;
+				m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 				m_context.callYulFunction(m_context.utilFunctions().updateStorageValueFunction(sourceType, structType, 0), 2, 0);
 			}
 			else
@@ -404,7 +404,7 @@ void StorageItem::storeValue(Type const& _sourceType, SourceLocation const& _loc
 					{
 						// stack layout: source_ref target_ref
 						pair<u256, unsigned> const& offsets = sourceType.storageOffsetsOfMember(member.name);
-						m_context << offsets.first << Instruction::DUP3 << Instruction::ADD;
+						m_context << offsets.first << AssemblyItem(Instruction::DUPE,(uint8_t)3) << Instruction::ADD;
 						m_context << u256(offsets.second);
 						// stack: source_ref target_ref source_member_ref source_member_off
 						StorageItem(m_context, *sourceMemberType).retrieveValue(_location, true);
@@ -415,7 +415,7 @@ void StorageItem::storeValue(Type const& _sourceType, SourceLocation const& _loc
 						solAssert(sourceType.location() == DataLocation::Memory, "");
 						// stack layout: source_ref target_ref
 						m_context << sourceType.memoryOffsetOfMember(member.name);
-						m_context << Instruction::DUP3 << Instruction::ADD;
+						m_context << AssemblyItem(Instruction::DUPE,(uint8_t)3) << Instruction::ADD;
 						MemoryItem(m_context, *sourceMemberType).retrieveValue(_location, true);
 						// stack layout: source_ref target_ref source_value...
 					}
@@ -465,7 +465,7 @@ void StorageItem::setToZero(SourceLocation const&, bool _removeReference) const
 				continue;
 			pair<u256, unsigned> const& offsets = structType.storageOffsetsOfMember(member.name);
 			m_context
-				<< offsets.first << Instruction::DUP3 << Instruction::ADD
+				<< offsets.first << AssemblyItem(Instruction::DUPE,(uint8_t)3) << Instruction::ADD
 				<< u256(offsets.second);
 			StorageItem(m_context, *memberType).setToZero();
 		}
@@ -489,7 +489,7 @@ void StorageItem::setToZero(SourceLocation const&, bool _removeReference) const
 			m_context << u256(0x100) << Instruction::EXP;
 			// stack: storage_ref multiplier
 			// fetch old value
-			m_context << Instruction::DUP2 << Instruction::SLOAD;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SLOAD;
 			// stack: storage_ref multiplier old_full_value
 			// clear bytes in old value
 			m_context
@@ -514,8 +514,8 @@ void StorageByteArrayElement::retrieveValue(SourceLocation const&, bool _remove)
 		m_context << Instruction::SWAP1 << Instruction::SLOAD
 			<< Instruction::SWAP1 << Instruction::BYTE;
 	else
-		m_context << Instruction::DUP2 << Instruction::SLOAD
-			<< Instruction::DUP2 << Instruction::BYTE;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SLOAD
+			<< AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::BYTE;
 	m_context << (u256(1) << (256 - 8)) << Instruction::MUL;
 }
 
@@ -524,14 +524,14 @@ void StorageByteArrayElement::storeValue(Type const&, SourceLocation const&, boo
 	// stack: value ref byte_number
 	m_context << u256(31) << Instruction::SUB << u256(0x100) << Instruction::EXP;
 	// stack: value ref (1<<(8*(31-byte_number)))
-	m_context << Instruction::DUP2 << Instruction::SLOAD;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SLOAD;
 	// stack: value ref (1<<(8*(31-byte_number))) old_full_value
 	// clear byte in old value
-	m_context << Instruction::DUP2 << u256(0xff) << Instruction::MUL
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << u256(0xff) << Instruction::MUL
 		<< Instruction::NOT << Instruction::AND;
 	// stack: value ref (1<<(32-byte_number)) old_full_value_with_cleared_byte
 	m_context << Instruction::SWAP1;
-	m_context << (u256(1) << (256 - 8)) << Instruction::DUP5 << Instruction::DIV
+	m_context << (u256(1) << (256 - 8)) << AssemblyItem(Instruction::DUPE,(uint8_t)5) << Instruction::DIV
 		<< Instruction::MUL << Instruction::OR;
 	// stack: value ref new_full_value
 	m_context << Instruction::SWAP1 << Instruction::SSTORE;
@@ -545,7 +545,7 @@ void StorageByteArrayElement::setToZero(SourceLocation const&, bool _removeRefer
 	solAssert(_removeReference, "");
 	m_context << u256(31) << Instruction::SUB << u256(0x100) << Instruction::EXP;
 	// stack: ref (1<<(8*(31-byte_number)))
-	m_context << Instruction::DUP2 << Instruction::SLOAD;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SLOAD;
 	// stack: ref (1<<(8*(31-byte_number))) old_full_value
 	// clear byte in old value
 	m_context << Instruction::SWAP1 << u256(0xff) << Instruction::MUL;

@@ -201,7 +201,7 @@ size_t ContractCompiler::packIntoContractCreator(ContractDefinition const& _cont
 	);
 	m_context.pushSubroutineSize(m_context.runtimeSub());
 	if (immutables.empty())
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 	m_context.pushSubroutineOffset(m_context.runtimeSub());
 	m_context << u256(0) << Instruction::CODECOPY;
 	// Assign immutable values from stack in reversed order.
@@ -300,11 +300,11 @@ void ContractCompiler::appendConstructor(FunctionDefinition const& _constructor)
 		m_context.appendProgramSize();
 		m_context << Instruction::CODESIZE << Instruction::SUB;
 		// stack: <memptr> <argument size>
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 		m_context.appendProgramSize();
-		m_context << Instruction::DUP4 << Instruction::CODECOPY;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)4) << Instruction::CODECOPY;
 		// stack: <memptr> <argument size>
-		m_context << Instruction::DUP2 << Instruction::DUP2 << Instruction::ADD;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::ADD;
 		// stack: <memptr> <argument size> <mem end>
 		CompilerUtils(m_context).storeFreeMemoryPointer();
 		// stack: <memptr> <argument size>
@@ -499,7 +499,7 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 				m_context << Instruction::STOP;
 			else
 			{
-				m_context << Instruction::DUP1 << Instruction::MLOAD << Instruction::SWAP1;
+				m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::MLOAD << Instruction::SWAP1;
 				m_context << u256(0x20) << Instruction::ADD;
 				m_context << Instruction::RETURN;
 			}
@@ -536,7 +536,7 @@ void ContractCompiler::appendFunctionSelector(ContractDefinition const& _contrac
 		{
 			// Parameter for calldataUnpacker
 			m_context << CompilerUtils::dataStartOffset;
-			m_context << Instruction::DUP1 << Instruction::CALLDATASIZE << Instruction::SUB;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::CALLDATASIZE << Instruction::SUB;
 			CompilerUtils(m_context).abiDecode(functionType->parameterTypes());
 		}
 		m_context.appendJumpTo(
@@ -1048,7 +1048,7 @@ void ContractCompiler::handleCatch(vector<ASTPointer<TryCatchClause>> const& _ca
 		solAssert(m_context.evmVersion().supportsReturndata(), "");
 
 		// stack: <selector>
-		m_context << Instruction::DUP1 << util::selectorFromSignatureU32("Error(string)") << Instruction::EQ;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << util::selectorFromSignatureU32("Error(string)") << Instruction::EQ;
 		m_context << Instruction::ISZERO;
 		m_context.appendConditionalJumpTo(panicTag);
 		m_context << Instruction::POP; // remove selector
@@ -1056,7 +1056,7 @@ void ContractCompiler::handleCatch(vector<ASTPointer<TryCatchClause>> const& _ca
 		// Try to decode the error message.
 		// If this fails, leaves 0 on the stack, otherwise the pointer to the data string.
 		m_context.callYulFunction(m_context.utilFunctions().tryDecodeErrorMessageFunction(), 0, 1);
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 		AssemblyItem decodeSuccessTag = m_context.appendConditionalJump();
 		m_context << Instruction::POP;
 		m_context.appendJumpTo(fallbackTag);

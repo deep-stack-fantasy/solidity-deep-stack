@@ -204,9 +204,9 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 			ArrayUtils(m_context).retrieveLength(*arrayType, 1);
 			// Stack: ref [length] index length
 			// check out-of-bounds access
-			m_context << Instruction::DUP2 << Instruction::LT;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::LT;
 			auto tag = m_context.appendConditionalJump();
-			m_context << u256(0) << Instruction::DUP1 << Instruction::REVERT;
+			m_context << u256(0) << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::REVERT;
 			m_context << tag;
 
 			ArrayUtils(m_context).accessIndex(*arrayType, false);
@@ -243,7 +243,7 @@ void ExpressionCompiler::appendStateVariableAccessor(VariableDeclaration const& 
 				if (!arrayType->isByteArrayOrString())
 					continue;
 			pair<u256, unsigned> const& offsets = structType->storageOffsetsOfMember(names[i]);
-			m_context << Instruction::DUP1 << u256(offsets.first) << Instruction::ADD << u256(offsets.second);
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << u256(offsets.first) << Instruction::ADD << u256(offsets.second);
 			Type const* memberType = structType->memberType(names[i]);
 			StorageItem(m_context, *memberType).retrieveValue(SourceLocation(), true);
 			utils().convertType(*memberType, *returnTypes[i]);
@@ -371,7 +371,7 @@ bool ExpressionCompiler::visit(TupleExpression const& _tuple)
 
 		solAssert(!arrayType.isDynamicallySized(), "Cannot create dynamically sized inline array.");
 		utils().allocateMemory(max(u256(32u), arrayType.memoryDataSize()));
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 
 		for (auto const& component: _tuple.components())
 		{
@@ -476,7 +476,7 @@ bool ExpressionCompiler::visit(UnaryOperation const& _unaryOperation)
 		{
 			// store value for later
 			solUnimplementedAssert(type.sizeOnStack() == 1, "Stack size != 1 not implemented.");
-			m_context << Instruction::DUP1;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 			if (m_currentLValue->sizeOnStack() > 0)
 				for (unsigned i = 1 + m_currentLValue->sizeOnStack(); i > 0; --i)
 					m_context << AssemblyItem(Instruction::SWAPE, (uint8_t)(i));
@@ -667,7 +667,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		auto const& structType = dynamic_cast<StructType const&>(*type.actualType());
 
 		utils().allocateMemory(max(u256(32u), structType.memoryDataSize()));
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 
 		for (unsigned i = 0; i < arguments.size(); ++i)
 		{
@@ -787,7 +787,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				m_context << AssemblyItem(Instruction::SWAPE, (uint8_t)(1))<< Instruction::POP;
 
 			// Check if zero (reverted)
-			m_context << Instruction::DUP1 << Instruction::ISZERO;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::ISZERO;
 			if (_functionCall.annotation().tryCall)
 			{
 				// If this is a try call, return "<address> 1" in the success case and
@@ -833,7 +833,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			m_context << u256(evmasm::GasCosts::callStipend);
 			acceptAndConvert(*arguments.front(), *function.parameterTypes().front(), true);
 			// gas <- gas * !value
-			m_context << Instruction::SWAP1 << Instruction::DUP2;
+			m_context << Instruction::SWAP1 << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 			m_context << Instruction::ISZERO << Instruction::MUL << Instruction::SWAP1;
 			FunctionType::Options callOptions;
 			callOptions.valueSet = true;
@@ -1045,7 +1045,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		case FunctionType::Kind::MulMod:
 		{
 			acceptAndConvert(*arguments[2], *TypeProvider::uint256());
-			m_context << Instruction::DUP1 << Instruction::ISZERO;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::ISZERO;
 			m_context.appendConditionalPanic(util::PanicCode::DivisionByZero);
 			for (unsigned i = 1; i < 3; i ++)
 				acceptAndConvert(*arguments[2 - i], *TypeProvider::uint256());
@@ -1086,7 +1086,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				solAssert(arrayType, "");
 
 				// stack: ArrayReference
-				m_context << u256(1) << Instruction::DUP2;
+				m_context << u256(1) << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 				ArrayUtils(m_context).incrementDynamicArraySize(*arrayType);
 				// stack: ArrayReference 1 newLength
 				m_context << Instruction::SUB;
@@ -1112,7 +1112,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				// stack: ArrayReference argValue
 				utils().moveToStackTop(argType->sizeOnStack(), 1);
 				// stack: argValue ArrayReference
-				m_context << Instruction::DUP1;
+				m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 				ArrayUtils(m_context).incrementDynamicArraySize(*arrayType);
 				// stack: argValue ArrayReference newLength
 				m_context << u256(1) << Instruction::SWAP1 << Instruction::SUB;
@@ -1204,7 +1204,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 
 			// Make sure we can allocate memory without overflow
 			m_context << u256(0xffffffffffffffff);
-			m_context << Instruction::DUP2;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 			m_context << Instruction::GT;
 			m_context.appendConditionalPanic(PanicCode::ResourceError);
 
@@ -1215,10 +1215,10 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			m_context << Instruction::SWAP1;
 			// Stack: memptr requested_length
 			// store length
-			m_context << Instruction::DUP1 << Instruction::DUP3 << Instruction::MSTORE;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << AssemblyItem(Instruction::DUPE,(uint8_t)3) << Instruction::MSTORE;
 			// Stack: memptr requested_length
 			// update free memory pointer
-			m_context << Instruction::DUP1;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 			// Stack: memptr requested_length requested_length
 			if (arrayType.isByteArrayOrString())
 				// Round up to multiple of 32
@@ -1227,16 +1227,16 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				m_context << arrayType.baseType()->memoryHeadSize() << Instruction::MUL;
 			// stacK: memptr requested_length data_size
 			m_context << u256(32) << Instruction::ADD;
-			m_context << Instruction::DUP3 << Instruction::ADD;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)3) << Instruction::ADD;
 			utils().storeFreeMemoryPointer();
 			// Stack: memptr requested_length
 
 			// Check if length is zero
-			m_context << Instruction::DUP1 << Instruction::ISZERO;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::ISZERO;
 			auto skipInit = m_context.appendConditionalJump();
 			// Always initialize because the free memory pointer might point at
 			// a dirty memory area.
-			m_context << Instruction::DUP2 << u256(32) << Instruction::ADD;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << u256(32) << Instruction::ADD;
 			utils().zeroInitialiseMemoryArray(arrayType);
 			m_context << skipInit;
 			m_context << Instruction::POP;
@@ -1450,7 +1450,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 			else
 			{
 				utils().convertType(*firstArgType, *TypeProvider::bytesMemory());
-				m_context << Instruction::DUP1 << u256(32) << Instruction::ADD;
+				m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << u256(32) << Instruction::ADD;
 				m_context << Instruction::SWAP1 << Instruction::MLOAD;
 				// stack now: <mem_pos> <length>
 
@@ -1781,19 +1781,19 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 				true
 			);
 
-			m_context << Instruction::DUP1 << Instruction::EXTCODESIZE;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::EXTCODESIZE;
 			// Stack post: <address> <size>
 
-			m_context << Instruction::DUP1;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 			// Account for the size field of `bytes memory`
 			m_context << u256(32) << Instruction::ADD;
 			utils().allocateMemory();
 			// Stack post: <address> <size> <mem_offset>
 
 			// Store size at mem_offset
-			m_context << Instruction::DUP2 << Instruction::DUP2 << Instruction::MSTORE;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::MSTORE;
 
-			m_context << u256(0) << Instruction::SWAP1 << Instruction::DUP1;
+			m_context << u256(0) << Instruction::SWAP1 << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 			// Stack post: <address> <size> 0 <mem_offset> <mem_offset>
 
 			m_context << u256(32) << Instruction::ADD << Instruction::SWAP1;
@@ -1899,7 +1899,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 			solAssert(!contractType.isSuper(), "");
 			ContractDefinition const& contract = contractType.contractDefinition();
 			utils().fetchFreeMemoryPointer();
-			m_context << Instruction::DUP1 << u256(32) << Instruction::ADD;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << u256(32) << Instruction::ADD;
 			utils().copyContractCodeToMemory(contract, member == "creationCode");
 			// Stack: start end
 			m_context.appendInlineAssembly(
@@ -1920,9 +1920,9 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 				dynamic_cast<ContractType const&>(*arg).contractDefinition();
 			utils().allocateMemory(((contract.name().length() + 31) / 32) * 32 + 32);
 			// store string length
-			m_context << u256(contract.name().length()) << Instruction::DUP2 << Instruction::MSTORE;
+			m_context << u256(contract.name().length()) << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::MSTORE;
 			// adjust pointer
-			m_context << Instruction::DUP1 << u256(32) << Instruction::ADD;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << u256(32) << Instruction::ADD;
 			utils().storeStringData(contract.name());
 		}
 		else if (member == "interfaceId")
@@ -1972,7 +1972,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 		{
 			if (_memberAccess.annotation().type->isDynamicallyEncoded())
 			{
-				m_context << Instruction::DUP1;
+				m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 				m_context << type.calldataOffsetOfMember(member) << Instruction::ADD;
 				CompilerUtils(m_context).accessCalldataTail(*memberType);
 			}
@@ -2197,7 +2197,7 @@ bool ExpressionCompiler::visit(IndexAccess const& _indexAccess)
 			// stack layout: <value> <index>
 			// check out-of-bounds access
 			m_context << u256(fixedBytesType.numBytes());
-			m_context << Instruction::DUP2 << Instruction::LT << Instruction::ISZERO;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::LT << Instruction::ISZERO;
 			// out-of-bounds access throws exception
 			m_context.appendConditionalPanic(util::PanicCode::ArrayOutOfBounds);
 
@@ -2252,7 +2252,7 @@ bool ExpressionCompiler::visit(IndexRangeAccess const& _indexAccess)
 	if (_indexAccess.endExpression())
 		acceptAndConvert(*_indexAccess.endExpression(), *TypeProvider::uint256());
 	else
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 	// stack: offset sliceStart length sliceEnd
 
 	m_context << Instruction::SWAP3;
@@ -2355,7 +2355,7 @@ void ExpressionCompiler::appendAndOrOperatorCode(BinaryOperation const& _binaryO
 	solAssert(c_op == Token::Or || c_op == Token::And, "");
 
 	_binaryOperation.leftExpression().accept(*this);
-	m_context << Instruction::DUP1;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 	if (c_op == Token::And)
 		m_context << Instruction::ISZERO;
 	evmasm::AssemblyItem endLabel = m_context.appendConditionalJump();
@@ -2495,7 +2495,7 @@ void ExpressionCompiler::appendArithmeticOperatorCode(Token _operator, Type cons
 		case Token::Mod:
 		{
 			// Test for division by zero
-			m_context << Instruction::DUP2 << Instruction::ISZERO;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::ISZERO;
 			m_context.appendConditionalPanic(util::PanicCode::DivisionByZero);
 
 			if (_operator == Token::Div)
@@ -2687,7 +2687,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 		// zero bytes (which we cannot detect).
 		solAssert(0 < retSize && retSize <= 32, "");
 		utils().fetchFreeMemoryPointer();
-		m_context << u256(0) << Instruction::DUP2 << Instruction::MSTORE;
+		m_context << u256(0) << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::MSTORE;
 		m_context << u256(32) << Instruction::ADD;
 		utils().storeFreeMemoryPointer();
 	}
@@ -2748,15 +2748,15 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	if (funKind == FunctionType::Kind::ECRecover)
 	{
 		// In this case, output is 32 bytes before input and has already been cleared.
-		m_context << u256(32) << Instruction::DUP2 << Instruction::SUB << Instruction::SWAP1;
+		m_context << u256(32) << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::SUB << Instruction::SWAP1;
 		// Here: <input end> <output size> <outpos> <input pos>
-		m_context << Instruction::DUP1 << Instruction::DUP5 << Instruction::SUB;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << AssemblyItem(Instruction::DUPE,(uint8_t)5) << Instruction::SUB;
 		m_context << Instruction::SWAP1;
 	}
 	else
 	{
-		m_context << Instruction::DUP1 << Instruction::DUP4 << Instruction::SUB;
-		m_context << Instruction::DUP2;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << AssemblyItem(Instruction::DUPE,(uint8_t)4) << Instruction::SUB;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 	}
 
 	// CALL arguments: outSize, outOff, inSize, inOff (already present up to here)
@@ -2786,7 +2786,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 			m_context.revertStrings() >= RevertStrings::Debug
 		)
 		{
-			m_context << Instruction::DUP1 << Instruction::EXTCODESIZE << Instruction::ISZERO;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::EXTCODESIZE << Instruction::ISZERO;
 			m_context.appendConditionalRevert(false, "Target contract does not contain code");
 			existenceChecked = true;
 		}
@@ -2838,7 +2838,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 
 	if (_tryCall)
 	{
-		m_context << Instruction::DUP1 << Instruction::ISZERO;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::ISZERO;
 		m_context.appendConditionalJumpTo(endTag);
 		m_context << Instruction::POP;
 	}

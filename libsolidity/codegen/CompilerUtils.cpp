@@ -73,21 +73,21 @@ void CompilerUtils::storeFreeMemoryPointer()
 void CompilerUtils::allocateMemory()
 {
 	fetchFreeMemoryPointer();
-	m_context << Instruction::SWAP1 << Instruction::DUP2 << Instruction::ADD;
+	m_context << Instruction::SWAP1 << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::ADD;
 	storeFreeMemoryPointer();
 }
 
 void CompilerUtils::allocateMemory(u256 const& size)
 {
 	fetchFreeMemoryPointer();
-	m_context << Instruction::DUP1 << size << Instruction::ADD;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << size << Instruction::ADD;
 	storeFreeMemoryPointer();
 }
 
 void CompilerUtils::toSizeAfterFreeMemoryPointer()
 {
 	fetchFreeMemoryPointer();
-	m_context << Instruction::DUP1 << Instruction::SWAP2 << Instruction::SUB;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::SWAP2 << Instruction::SUB;
 	m_context << Instruction::SWAP1;
 }
 
@@ -96,7 +96,7 @@ void CompilerUtils::revertWithStringData(Type const& _argumentType)
 	solAssert(_argumentType.isImplicitlyConvertibleTo(*TypeProvider::fromElementaryTypeName("string memory")));
 	fetchFreeMemoryPointer();
 	m_context << util::selectorFromSignatureU256("Error(string)");
-	m_context << Instruction::DUP2 << Instruction::MSTORE;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::MSTORE;
 	m_context << u256(4) << Instruction::ADD;
 	// Stack: <string data> <mem pos of encoding start>
 	abiEncode({&_argumentType}, {TypeProvider::array(DataLocation::Memory, true)});
@@ -112,7 +112,7 @@ void CompilerUtils::revertWithError(
 {
 	fetchFreeMemoryPointer();
 	m_context << util::selectorFromSignatureU256(_signature);
-	m_context << Instruction::DUP2 << Instruction::MSTORE;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::MSTORE;
 	m_context << u256(4) << Instruction::ADD;
 	// Stack: <arguments...> <mem pos of encoding start>
 	abiEncode(_argumentTypes, _parameterTypes);
@@ -170,7 +170,7 @@ void CompilerUtils::loadFromMemoryDynamic(
 )
 {
 	if (_keepUpdatedMemoryOffset)
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 
 	if (auto arrayType = dynamic_cast<ArrayType const*>(&_type))
 	{
@@ -212,7 +212,7 @@ void CompilerUtils::storeInMemoryDynamic(Type const& _type, bool _padToWordBound
 	}
 	else if (auto str = dynamic_cast<StringLiteralType const*>(&_type))
 	{
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 		storeStringData(bytesConstRef(str->value()));
 		if (_padToWordBoundaries)
 			m_context << u256(max<size_t>(32, ((str->value().size() + 31) / 32) * 32));
@@ -226,13 +226,13 @@ void CompilerUtils::storeInMemoryDynamic(Type const& _type, bool _padToWordBound
 	)
 	{
 		combineExternalFunctionType(true);
-		m_context << Instruction::DUP2 << Instruction::MSTORE;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::MSTORE;
 		m_context << u256(_padToWordBoundaries ? 32 : 24) << Instruction::ADD;
 	}
 	else if (_type.isValueType())
 	{
 		unsigned numBytes = prepareMemoryStore(_type, _padToWordBoundaries, _cleanup);
-		m_context << Instruction::DUP2 << Instruction::MSTORE;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::MSTORE;
 		m_context << u256(numBytes) << Instruction::ADD;
 	}
 	else // Should never happen
@@ -268,12 +268,12 @@ void CompilerUtils::abiDecode(TypePointers const& _typeParameters, bool _fromMem
 	templ("revertString", m_context.revertReasonIfDebug("Calldata too short"));
 	m_context.appendInlineAssembly(templ.render(), {"len"});
 
-	m_context << Instruction::DUP2 << Instruction::ADD;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::ADD;
 	m_context << Instruction::SWAP1;
 	/// Stack: <input_end> <source_offset>
 
 	// Retain the offset pointer as base_offset, the point from which the data offsets are computed.
-	m_context << Instruction::DUP1;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 	for (Type const* parameterType: _typeParameters)
 	{
 		// stack: v1 v2 ... v(k-1) input_end base_offset current_offset
@@ -295,14 +295,14 @@ void CompilerUtils::abiDecode(TypePointers const& _typeParameters, bool _fromMem
 				if (arrayType.isDynamicallySized())
 				{
 					// compute data pointer
-					m_context << Instruction::DUP1 << Instruction::MLOAD;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << Instruction::MLOAD;
 					// stack: v1 v2 ... v(k-1) input_end base_offset current_offset data_offset
 
 					fetchFreeMemoryPointer();
 					// stack: v1 v2 ... v(k-1) input_end base_offset current_offset data_offset dstmem
 					moveIntoStack(4);
 					// stack: v1 v2 ... v(k-1) dstmem input_end base_offset current_offset data_offset
-					m_context << Instruction::DUP5;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)5);
 					// stack: v1 v2 ... v(k-1) dstmem input_end base_offset current_offset data_offset dstmem
 
 					// Check that the data pointer is valid and that length times
@@ -338,7 +338,7 @@ void CompilerUtils::abiDecode(TypePointers const& _typeParameters, bool _fromMem
 				{
 					// Size has already been checked for this one.
 					moveIntoStack(2);
-					m_context << Instruction::DUP3;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)3);
 					m_context << u256(arrayType.calldataHeadSize()) << Instruction::ADD;
 				}
 			}
@@ -358,7 +358,7 @@ void CompilerUtils::abiDecode(TypePointers const& _typeParameters, bool _fromMem
 					// TODO add test
 					("revertString", m_context.revertReasonIfDebug("ABI calldata decoding: invalid data offset"))
 					.render(), {"data_offset"});
-					m_context << Instruction::DUP3 << Instruction::ADD;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)3) << Instruction::ADD;
 					// stack: input_end base_offset next_pointer array_head_ptr
 					m_context.appendInlineAssembly(Whiskers(R"({
 						if gt(add(array_head_ptr, 0x20), input_end) { <revertString> }
@@ -384,7 +384,7 @@ void CompilerUtils::abiDecode(TypePointers const& _typeParameters, bool _fromMem
 				{
 					// size has already been checked
 					// stack: input_end base_offset data_offset
-					m_context << Instruction::DUP1;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 					m_context << u256(calldataType->calldataHeadSize()) << Instruction::ADD;
 				}
 				if (arrayType.location() == DataLocation::Memory)
@@ -460,7 +460,7 @@ void CompilerUtils::encodeToMemory(
 	// of the nth dynamic parameter, which is filled once the dynamic parts are processed.
 
 	// store memory start pointer
-	m_context << Instruction::DUP1;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 
 	unsigned argSize = CompilerUtils::sizeOnStack(_givenTypes);
 	unsigned stackPos = 0; // advances through the argument values
@@ -472,7 +472,7 @@ void CompilerUtils::encodeToMemory(
 		if (targetType->isDynamicallySized() && !_copyDynamicDataInPlace)
 		{
 			// leave end_of_mem as dyn head pointer
-			m_context << Instruction::DUP1 << u256(32) << Instruction::ADD;
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << u256(32) << Instruction::ADD;
 			dynPointers++;
 			assertThrow(
 				(argSize + dynPointers) < DSF_MAX_STACK_ACCESS,
@@ -629,7 +629,7 @@ void CompilerUtils::abiEncodeV2(
 void CompilerUtils::abiDecodeV2(TypePointers const& _parameterTypes, bool _fromMemory)
 {
 	// stack: <source_offset> <length> [stack top]
-	m_context << Instruction::DUP2 << Instruction::ADD;
+	m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::ADD;
 	m_context << Instruction::SWAP1;
 	// stack: <end> <start>
 	string decoderName = m_context.abiFunctions().tupleDecoder(_parameterTypes, _fromMemory);
@@ -658,7 +658,7 @@ void CompilerUtils::zeroInitialiseMemoryArray(ArrayType const& _type)
 		storeInMemoryDynamic(*_type.baseType());
 		m_context << Instruction::SWAP1 << u256(1) << Instruction::SWAP1;
 		m_context << Instruction::SUB << Instruction::SWAP1;
-		m_context << Instruction::DUP2;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 		m_context.appendConditionalJumpTo(repeat);
 	}
 	m_context << Instruction::SWAP1 << Instruction::POP;
@@ -715,7 +715,7 @@ void CompilerUtils::splitExternalFunctionType(bool _leftAligned)
 	// address (right aligned), function identifier (right aligned)
 	if (_leftAligned)
 	{
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 		rightShiftNumberOnStack(64 + 32);
 		// <input> <address>
 		m_context << Instruction::SWAP1;
@@ -723,7 +723,7 @@ void CompilerUtils::splitExternalFunctionType(bool _leftAligned)
 	}
 	else
 	{
-		m_context << Instruction::DUP1;
+		m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 		rightShiftNumberOnStack(32);
 		m_context << ((u256(1) << 160) - 1) << Instruction::AND << Instruction::SWAP1;
 	}
@@ -856,7 +856,7 @@ void CompilerUtils::convertType(
 		{
 			EnumType const& enumType = dynamic_cast<decltype(enumType)>(_typeOnStack);
 			solAssert(enumType.numberOfMembers() > 0, "empty enum should have caused a parser error.");
-			m_context << u256(enumType.numberOfMembers() - 1) << Instruction::DUP2 << Instruction::GT;
+			m_context << u256(enumType.numberOfMembers() - 1) << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::GT;
 			if (_asPartOfArgumentDecoding)
 				m_context.appendConditionalRevert(false, "Enum out of range");
 			else
@@ -898,7 +898,7 @@ void CompilerUtils::convertType(
 			convertType(_typeOnStack, *_typeOnStack.mobileType(), true);
 			EnumType const& enumType = dynamic_cast<decltype(enumType)>(_targetType);
 			solAssert(enumType.numberOfMembers() > 0, "empty enum should have caused a parser error.");
-			m_context << u256(enumType.numberOfMembers() - 1) << Instruction::DUP2 << Instruction::GT;
+			m_context << u256(enumType.numberOfMembers() - 1) << AssemblyItem(Instruction::DUPE,(uint8_t)2) << Instruction::GT;
 			m_context.appendConditionalPanic(util::PanicCode::EnumConversionError);
 			enumOverflowCheckPending = false;
 		}
@@ -976,7 +976,7 @@ void CompilerUtils::convertType(
 			size_t storageSize = 32 + ((data.size() + 31) / 32) * 32;
 			allocateMemory(storageSize);
 			// stack: mempos
-			m_context << Instruction::DUP1 << u256(data.size());
+			m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << u256(data.size());
 			storeInMemoryDynamic(*TypeProvider::uint256());
 			// stack: mempos datapos
 			storeStringData(data);
@@ -1056,18 +1056,18 @@ void CompilerUtils::convertType(
 
 					// allocate memory
 					// stack: <source ref> (variably sized) <length>
-					m_context << Instruction::DUP1;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 					ArrayUtils(m_context).convertLengthToSize(targetType, true);
 					// stack: <source ref> (variably sized) <length> <size>
 					if (targetType.isDynamicallySized())
 						m_context << u256(0x20) << Instruction::ADD;
 					allocateMemory();
 					// stack: <source ref> (variably sized) <length> <mem start>
-					m_context << Instruction::DUP1;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 					moveIntoStack(2 + stackSize);
 					if (targetType.isDynamicallySized())
 					{
-						m_context << Instruction::DUP2;
+						m_context << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 						storeInMemoryDynamic(*TypeProvider::uint256());
 					}
 					// stack: <mem start> <source ref> (variably sized) <length> <mem data pos>
@@ -1082,7 +1082,7 @@ void CompilerUtils::convertType(
 						// stack: <mem start> <source ref> (variably sized) <length> <counter> <mem data pos>
 						auto repeat = m_context.newTag();
 						m_context << repeat;
-						m_context << Instruction::DUP3 << Instruction::DUP3;
+						m_context << AssemblyItem(Instruction::DUPE,(uint8_t)3) << AssemblyItem(Instruction::DUPE,(uint8_t)3);
 						m_context << Instruction::LT << Instruction::ISZERO;
 						auto loopEnd = m_context.appendConditionalJump();
 						copyToStackTop(3 + stackSize, stackSize);
@@ -1182,13 +1182,13 @@ void CompilerUtils::convertType(
 					CompilerUtils utils(_context);
 					// stack: <source ref>
 					utils.allocateMemory(typeOnStack->memoryDataSize());
-					_context << Instruction::SWAP1 << Instruction::DUP2;
+					_context << Instruction::SWAP1 << AssemblyItem(Instruction::DUPE,(uint8_t)2);
 					// stack: <memory ptr> <source ref> <memory ptr>
 					for (auto const& member: typeOnStack->members(nullptr))
 					{
 						solAssert(!member.type->containsNestedMapping());
 						pair<u256, unsigned> const& offsets = typeOnStack->storageOffsetsOfMember(member.name);
-						_context << offsets.first << Instruction::DUP3 << Instruction::ADD;
+						_context << offsets.first << AssemblyItem(Instruction::DUPE,(uint8_t)3) << Instruction::ADD;
 						_context << u256(offsets.second);
 						StorageItem(_context, *member.type).retrieveValue(SourceLocation(), true);
 						Type const* targetMemberType = targetType->memberType(member.name);
@@ -1222,7 +1222,7 @@ void CompilerUtils::convertType(
 				}
 				else
 				{
-					m_context << Instruction::DUP1;
+					m_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 					m_context << Instruction::CALLDATASIZE;
 					m_context << Instruction::SUB;
 					abiDecode({&targetType}, false);
@@ -1376,7 +1376,7 @@ void CompilerUtils::pushZeroValue(Type const& _type)
 			CompilerUtils utils(_context);
 
 			utils.allocateMemory(max<u256>(32u, type->memoryDataSize()));
-			_context << Instruction::DUP1;
+			_context << AssemblyItem(Instruction::DUPE,(uint8_t)1);
 
 			if (auto structType = dynamic_cast<StructType const*>(type))
 				for (auto const& member: structType->members(nullptr))
@@ -1524,8 +1524,8 @@ void CompilerUtils::copyContractCodeToMemory(ContractDefinition const& contract,
 				_context.compiledContractRuntime(contract);
 			// pushes size
 			auto subroutine = _context.addSubroutine(assembly);
-			_context << Instruction::DUP1 << subroutine;
-			_context << Instruction::DUP4 << Instruction::CODECOPY;
+			_context << AssemblyItem(Instruction::DUPE,(uint8_t)1) << subroutine;
+			_context << AssemblyItem(Instruction::DUPE,(uint8_t)4) << Instruction::CODECOPY;
 			_context << Instruction::ADD;
 		}
 	);
