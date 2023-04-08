@@ -133,6 +133,8 @@ KnownState::StoreOperation KnownState::feedItem(AssemblyItem const& _item, bool 
 		// The latest EVMVersion is used here, since the InstructionInfo is assumed to be
 		// the same across all EVM versions except for the instruction name.
 		InstructionInfo info = instructionInfo(instruction, EVMVersion());
+		//dsf todo
+		assertThrow(!(_item.instruction()==Instruction::DUPE ||		_item.instruction()==Instruction::SWAPE),util::Exception,"DSF TODO");
 		if (SemanticInformation::isDupInstruction(_item))
 			setStackElement(
 				m_stackHeight + 1,

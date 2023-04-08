@@ -167,10 +167,11 @@ struct OpReturnRevert: SimplePeepholeOptimizerMethod<OpReturnRevert>
 		back_insert_iterator<AssemblyItems> _out
 	)
 	{
-		if (
+		//DSF todo
+		if (false &&
 			(_returnRevert == Instruction::RETURN || _returnRevert == Instruction::REVERT) &&
 			_push.type() == Push &&
-			(_pushOrDup.type() == Push || _pushOrDup == dupInstruction(1))
+			(_pushOrDup.type() == Push || _pushOrDup == Instruction::DUP1)
 		)
 			if (
 				(_op.type() == Operation && !instructionInfo(_op.instruction(), langutil::EVMVersion()).sideEffects) ||

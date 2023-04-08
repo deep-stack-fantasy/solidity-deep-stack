@@ -759,7 +759,10 @@ void StackLayoutGenerator::fillInJunk(CFG::BasicBlock const& _block, CFG::Functi
 				auto depth = util::findOffset(_source | ranges::views::reverse, _slot);
 				yulAssert(depth);
 				if (*depth < 16)
-					opGas += evmasm::GasMeter::runGas(evmasm::dupInstruction(static_cast<unsigned>(*depth + 1)), langutil::EVMVersion());
+					opGas += evmasm::GasCosts::tier2Gas;
+//						evmasm::GasMeter::runGas(
+//						evmasm::dupInstruction(static_cast<unsigned>(*depth + 1)),
+//						langutil::EVMVersion());
 					//DSF Todo: Calculate Gas
 				else
 					opGas += 1000;
