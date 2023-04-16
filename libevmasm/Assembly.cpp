@@ -559,9 +559,9 @@ LinkerObject const& Assembly::assemble() const
 			ret.bytecode.push_back(static_cast<uint8_t>(i.instruction()));
 			//todo dsf done
 			assertThrow(
-				(i.instruction_opt()!=0)==(i.instruction()==Instruction::DUPE||i.instruction()==Instruction::SWAPE),
-				util::Exception,"DSF Exception");
-			if (i.instruction_opt()!=0){
+				(i.instruction_opt() != 0) == (i.instruction() == Instruction::DUPE || i.instruction() == Instruction::SWAPE),
+				util::Exception, "DSF Exception");
+			if (i.instruction_opt() != 0){
 				ret.bytecode.push_back(i.instruction_opt());
 			}
 			break;

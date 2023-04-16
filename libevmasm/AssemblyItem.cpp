@@ -154,7 +154,7 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, Precision _precision) 
 			immutableOccurrences = m_immutableOccurrences.value();
 		}
 
-		if (immutableOccurrences != 0){
+		if (immutableOccurrences != 0) {
 			// (DUP DUP PUSH <n> ADD MSTORE)* (PUSH <n> ADD MSTORE)
 			// todo dsf
 			//			return (immutableOccurrences - 1) * (5 + 32) + (3 + 32);
@@ -176,14 +176,16 @@ size_t AssemblyItem::bytesRequired(size_t _addressLength, Precision _precision) 
 
 size_t AssemblyItem::arguments() const
 {
-	if (type() == Operation){
+	if (type() == Operation) {
 		// dsf todo done
-		if (m_instruction_opt!=0){
-			if (m_instruction == Instruction::DUPE){
+		if (m_instruction_opt != 0) {
+			if (m_instruction == Instruction::DUPE) {
 				return m_instruction_opt;
-			}else if (m_instruction == Instruction::SWAPE){
-				return m_instruction_opt+1;
-			}else{
+			}
+			else if (m_instruction == Instruction::SWAPE) {
+				return m_instruction_opt + 1;
+			}
+			else {
 				assertThrow(true, util::Exception, "DSF Exception: unexpected instruction");
 			}
 		}
@@ -205,10 +207,11 @@ size_t AssemblyItem::returnValues() const
 	{
 	case Operation:
 		// dsf todo done
-		if (m_instruction_opt!=0){
-			if (m_instruction == Instruction::DUPE||m_instruction == Instruction::SWAPE){
-				return m_instruction_opt+1;
-			}else{
+		if (m_instruction_opt!=0) {
+			if (m_instruction == Instruction::DUPE || m_instruction == Instruction::SWAPE) {
+				return m_instruction_opt + 1;
+			}
+			else {
 				assertThrow(true, util::Exception, "DSF Exception: unexpected instruction");
 			}
 		}
